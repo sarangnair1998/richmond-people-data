@@ -2,6 +2,8 @@
 
 # dependencies
 /node_modules
+mcp/node_modules
+mcp/dist
 /.pnp
 .pnp.*
 .yarn/*
@@ -39,3 +41,10 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# data source files (large binaries — ingested into Supabase, not needed in repo)
+data/*.xlsx
+data/*.pdf
+
+# python cache
+scripts/__pycache__/
