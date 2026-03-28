@@ -150,6 +150,27 @@ export default function Home() {
     }
   }, [availableRaces]);
 
+  const SUBCAT_COLORS = ["border-blue-600", "border-emerald-500", "border-amber-500", "border-rose-500"];
+
+  const subcatStatCards = useMemo(() => {
+    if (activeSubcat === "all") return null;
+    const seen = new Set<string>();
+    const cards: Indicator[] = [];
+    for (const i of subcatIndicators) {
+      if (i.race === "all" && i.value !== null && !seen.has(i.name)) {
+        seen.add(i.name); cards.push(i);
+        if (cards.length === 4) return cards;
+      }
+    }
+    for (const i of subcatIndicators) {
+      if (i.value !== null && !seen.has(i.name)) {
+        seen.add(i.name); cards.push(i);
+        if (cards.length === 4) return cards;
+      }
+    }
+    return cards;
+  }, [subcatIndicators, activeSubcat]);
+
   function downloadSelected() {
     const rows = indicators.filter((i) => selectedIds.includes(i.id));
     const headers = ["Indicator", "Race/Group", "Value", "Unit", "VA Average", "Source", "Year", "Definition"];
@@ -179,27 +200,6 @@ export default function Home() {
     };
   }
 
-  const SUBCAT_COLORS = ["border-blue-600", "border-emerald-500", "border-amber-500", "border-rose-500"];
-
-  const subcatStatCards = useMemo(() => {
-    if (activeSubcat === "all") return null;
-    const seen = new Set<string>();
-    const cards: Indicator[] = [];
-    for (const i of subcatIndicators) {
-      if (i.race === "all" && i.value !== null && !seen.has(i.name)) {
-        seen.add(i.name); cards.push(i);
-        if (cards.length === 4) return cards;
-      }
-    }
-    for (const i of subcatIndicators) {
-      if (i.value !== null && !seen.has(i.name)) {
-        seen.add(i.name); cards.push(i);
-        if (cards.length === 4) return cards;
-      }
-    }
-    return cards;
-  }, [subcatIndicators, activeSubcat]);
-
   return (
     <div className="min-h-screen bg-slate-50">
       {/* Header */}
@@ -210,19 +210,30 @@ export default function Home() {
             <p className="text-xs text-blue-200 mt-0.5">{t.header.subtitle}</p>
           </div>
           <div className="flex items-center gap-3">
-            <div className="flex gap-2">
-              {["Census", "VDH", "VDOE", "CDC"].map((s) => (
+            <div className="flex gap-1.5 flex-wrap">
+              {["AIDSVu", "Census ACS", "VDH", "VDOE", "CDC WONDER", "CDC PLACES", "CDC NCHS"].map((s) => (
                 <span key={s} className="text-xs bg-white/10 text-blue-100 rounded-full px-2 py-0.5 border border-white/20">
                   {s}
                 </span>
               ))}
             </div>
-            <button
-              onClick={() => setLang(lang === "en" ? "es" : "en")}
-              className="text-xs font-semibold bg-white/10 hover:bg-white/20 text-white border border-white/20 rounded-full px-3 py-1 transition-colors"
+            <a
+              href="/admin"
+              className="text-xs font-semibold bg-emerald-500 hover:bg-emerald-400 text-white rounded-lg px-3 py-1.5 transition-colors"
             >
-              {lang === "en" ? "ES" : "EN"}
-            </button>
+              🛠️ Admin
+            </a>
+            <div className="flex items-center gap-1.5">
+              <span className="text-xs text-blue-200 font-medium">🌐</span>
+              <select
+                value={lang}
+                onChange={(e) => setLang(e.target.value as Lang)}
+                className="text-xs font-semibold bg-white/10 hover:bg-white/20 text-white border border-white/20 rounded-lg px-2 py-1.5 transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-white/30"
+              >
+                <option value="en" className="text-slate-900 bg-white">English</option>
+                <option value="es" className="text-slate-900 bg-white">Español</option>
+              </select>
+            </div>
           </div>
         </div>
       </header>
