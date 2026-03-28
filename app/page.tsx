@@ -62,6 +62,7 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [selectedIndicator, setSelectedIndicator] = useState(DEFAULT_CHART["health"]);
   const [selectedRace, setSelectedRace] = useState("all");
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
   useEffect(() => {
     getAllIndicators()
@@ -98,6 +99,25 @@ export default function Home() {
     )).sort(),
     [tabIndicators, selectedIndicator]
   );
+
+  // Download only the checked rows from the table
+  function downloadSelected() {
+    const rows = indicators.filter((i) => selectedIds.includes(i.id));
+    const headers = ["Indicator", "Race/Group", "Value", "Unit", "VA Average", "Source", "Year", "Definition"];
+    const csvRows = rows.map((i) => [
+      `"${i.name}"`, i.race, i.value ?? "", `"${i.unit}"`,
+      i.va_average ?? "", `"${i.source}"`, i.year ?? "",
+      `"${(i.definition ?? "").replace(/"/g, "'")}"`,
+    ]);
+    const csv = [headers.join(","), ...csvRows.map((r) => r.join(","))].join("\n");
+    const blob = new Blob([csv], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `richmond-selected-${new Date().toISOString().split("T")[0]}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
 
   // Stat card values from live data
   function getCardValue(name: string, race: string): number {
@@ -206,16 +226,22 @@ export default function Home() {
               <div className="flex items-center justify-between">
                 <h2 className="text-sm font-semibold text-slate-700">All Indicators</h2>
                 <div className="flex items-center gap-2">
-                  {activeTab === "health" && (
-                    <GrantPackButton indicators={indicators} />
+                  {selectedIds.length > 0 && (
+                    <button
+                      onClick={downloadSelected}
+                      className="flex items-center gap-2 text-sm bg-blue-600 text-white rounded-lg px-4 py-2 hover:bg-blue-700 transition-colors font-medium"
+                    >
+                      ↓ Download Selected ({selectedIds.length})
+                    </button>
                   )}
+                  <GrantPackButton indicators={indicators} />
                   <ExportCSV
                     indicators={tabIndicators}
                     filename={`richmond-${activeTab}-data.csv`}
                   />
                 </div>
               </div>
-              <DataTable indicators={tabIndicators} />
+              <DataTable indicators={tabIndicators} onSelectionChange={setSelectedIds} />
             </div>
 
             {/* Chart Builder */}
