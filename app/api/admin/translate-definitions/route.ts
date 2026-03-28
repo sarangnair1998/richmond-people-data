@@ -1,25 +1,26 @@
 import { createClient } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
-import Anthropic from "@anthropic-ai/sdk";
+import Groq from "groq-sdk";
 
 export const runtime = "nodejs";
 export const maxDuration = 300;
 
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD ?? "";
 
-async function translateOne(client: Anthropic, text: string): Promise<string> {
-  const message = await client.messages.create({
-    model: "claude-haiku-4-5-20251001",
-    max_tokens: 512,
+async function translateOne(groq: Groq, text: string): Promise<string> {
+  const completion = await groq.chat.completions.create({
+    model: "llama-3.3-70b-versatile",
     messages: [
       {
-        role: "user",
-        content: `Translate the following English public health text to Spanish. Preserve all technical terms, proper nouns, acronyms, and numbers exactly as they appear. Return only the translated text with no explanation or preamble.\n\n${text}`,
+        role: "system",
+        content: "You are a professional medical and public health translator. Translate the following English text to Spanish. Preserve technical terms, proper nouns, and numbers exactly. Return only the translated text, no explanations.",
       },
+      { role: "user", content: text },
     ],
+    temperature: 0.1,
+    max_tokens: 512,
   });
-  const block = message.content[0];
-  return block.type === "text" ? block.text.trim() : text;
+  return completion.choices[0]?.message?.content?.trim() ?? text;
 }
 
 function sleep(ms: number) {
@@ -36,7 +37,7 @@ export async function POST(req: Request) {
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
   );
-  const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+  const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
   const { data: rows, error } = await supabase
     .from("indicators")
@@ -55,7 +56,7 @@ export async function POST(req: Request) {
   let failed = 0;
   for (const [eng] of cache) {
     try {
-      const spanish = await translateOne(anthropic, eng);
+      const spanish = await translateOne(groq, eng);
       cache.set(eng, spanish);
     } catch {
       failed++;
