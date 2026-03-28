@@ -44,6 +44,7 @@ export default function DisparityCallout({ indicators }: Props) {
   const rows = names.flatMap((name) => {
     const raceRows = indicators.filter(
       (i) => i.name === name && i.race !== "all" && i.value !== null && RACE_LABEL[i.race]
+        && (i.unit === "%" || i.unit.startsWith("per "))
     );
     if (raceRows.length < 2) return [];
 
