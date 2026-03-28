@@ -1,0 +1,52 @@
+{
+  "source": "Virginia School Quality Profiles — Richmond City Public Schools",
+  "source_url": "https://schoolquality.virginia.gov/divisions/richmond-city-public-schools",
+  "accessed": "2026-03-27",
+  "division": "Richmond City Public Schools",
+
+  "enrollment_total": {
+    "2024_2025": 21427,
+    "2023_2024": 21255,
+    "2022_2023": 21706
+  },
+
+  "enrollment_by_race_2024_2025_pct": {
+    "black": 56.8,
+    "hispanic": 27.4,
+    "white": 11.5,
+    "other": 4.3
+  },
+
+  "sol_pass_rate_pct": {
+    "note": "Percentage of students passing Standards of Learning assessments. Richmond City Division vs Virginia State.",
+    "reading":  { "division_2024_2025": 53, "state_2024_2025": 74, "division_2023_2024": 51, "division_2022_2023": 47 },
+    "writing":  { "division_2024_2025": 44, "state_2024_2025": 76, "division_2023_2024": 49, "division_2022_2023": 39 },
+    "math":     { "division_2024_2025": 49, "state_2024_2025": 72, "division_2023_2024": 47, "division_2022_2023": 44 },
+    "science":  { "division_2024_2025": 48, "state_2024_2025": 71, "division_2023_2024": 46, "division_2022_2023": 35 },
+    "history":  { "division_2024_2025": 46, "state_2024_2025": 66, "division_2023_2024": 43, "division_2022_2023": 39 }
+  },
+
+  "chronic_absenteeism_2024_2025": {
+    "pct_missed_10pct_or_more_days": 20.5,
+    "note": "Chronic absenteeism = missed 10% or more of enrolled school days"
+  },
+
+  "graduation_rate_4yr_pct": {
+    "note": "Four-year on-time graduation rate. See vdoe_cohort_graduation.csv for breakdown by race.",
+    "2024_2025": { "division": 80.1, "state": 92.0 },
+    "2023_2024": { "division": 78.1, "state": 92.9 },
+    "2022_2023": { "division": 72.5, "state": 92.0 }
+  },
+
+  "dropout_rate_pct": {
+    "division_class_of_2025": 17.9,
+    "state_class_of_2025": 5.1
+  },
+
+  "postsecondary_enrollment_pct": {
+    "year": "2021-2022",
+    "note": "Graduates enrolled in a college or university within 16 months of graduation",
+    "division": 54,
+    "state": 67
+  }
+}

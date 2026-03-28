@@ -186,16 +186,23 @@ Four data categories, each with its own view:
 - Claude outputs structured JSON: `{chart_type, indicators[], title, x_label, y_label, notes}`
 - Frontend renders the chart from that JSON using Recharts
 - Below the chart: plain-language interpretation + source citations for every indicator
-- Compatibility warnings:
+- Compatibility warnings drawn from the `notes` field on each indicator:
   - ⚠ "These indicators are from different years — interpret with caution"
   - ⚠ "Do not compare maternal mortality trends crossing 2018"
+  - ⚠ "These indicators use different denominators — interpret with caution"
 - Export chart as PNG with auto-embedded citation footer
 - Claude proactively suggests related pairings
 
+**Token usage — rate limiting:**
+- **5 requests per browser session** — tracked in localStorage, no login needed
+- After 5 requests: "Chart builder limit reached for this session. All other features remain available."
+- This caps Claude API costs without blocking any other part of the site
+- Post-hackathon upgrade path: require Google sign-in to use chart builder
+
 **Implementation:**
-- Claude system prompt contains full indicator catalog (name, source, table, year, definition)
+- Claude system prompt contains full indicator catalog (name, source, table, year, definition, notes)
 - User message → Claude → structured JSON → Recharts renders
-- Reuses same Supabase query layer as Q&A
+- Indicator catalog loaded from static JSON file at build time (not a live Supabase query)
 
 ### 7. Verified Community Data Contribution (Transit app style)
 - Sign in via Google (Supabase Auth)
@@ -276,6 +283,7 @@ create table indicators (
   va_average numeric,
   suppressed boolean default false,
   data_quality text default 'final',  -- 'final', 'provisional', 'modeled'
+  notes text,                         -- compatibility warnings, caveats, year range notes
   created_at timestamptz default now()
 );
 

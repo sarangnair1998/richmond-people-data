@@ -1,0 +1,46 @@
+{
+  "source": "CDC PLACES: Local Data for Better Health",
+  "source_url": "https://data.cdc.gov/resource/swc5-untb.json?locationid=51760",
+  "accessed": "2026-03-28",
+  "year": "2022 (model-estimated from 2022 BRFSS + ACS)",
+  "geography": "Richmond City, Virginia (FIPS 51760)",
+  "note": "All values are age-adjusted prevalence (%) among adults unless noted. These are modeled estimates — label as 'Estimated prevalence' in UI.",
+
+  "health_behaviors": {
+    "current_smoking_pct": 14.2,
+    "obesity_pct": 38.3,
+    "no_leisure_physical_activity_pct": 25.9,
+    "binge_drinking_pct": 15.2,
+    "short_sleep_duration_pct": 37.5
+  },
+
+  "health_outcomes": {
+    "diabetes_pct": 13.5,
+    "coronary_heart_disease_pct": 5.8,
+    "depression_pct": 22.8,
+    "stroke_pct": 3.5,
+    "asthma_pct": 11.4,
+    "copd_pct": 6.3,
+    "frequent_mental_distress_pct": 17.8,
+    "frequent_physical_distress_pct": 12.9,
+    "any_disability_pct": 33.1
+  },
+
+  "preventive_care": {
+    "routine_checkup_past_year_pct": 78.9,
+    "cholesterol_screening_pct": 85.9,
+    "mammography_use_women_50_74_pct": 78.3,
+    "colorectal_cancer_screening_pct": 61.0,
+    "dental_visit_past_year_pct": 61.8
+  },
+
+  "social_determinants": {
+    "uninsured_adults_18_64_pct": 9.8,
+    "food_stamps_past_12mo_pct": 17.0,
+    "housing_insecurity_past_12mo_pct": 15.5,
+    "lack_reliable_transportation_pct": 10.3,
+    "utility_shutoff_threat_pct": 10.8,
+    "lack_social_emotional_support_pct": 23.8,
+    "loneliness_pct": 37.3
+  }
+}

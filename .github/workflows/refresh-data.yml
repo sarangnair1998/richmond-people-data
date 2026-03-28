@@ -1,0 +1,45 @@
+name: Refresh Richmond People Data
+
+# Runs every year on March 1st at 6am UTC — after agencies publish annual data.
+# Also runnable manually from GitHub Actions tab (workflow_dispatch).
+on:
+  schedule:
+    - cron: "0 6 1 3 *"   # March 1st, 6:00 UTC
+  workflow_dispatch:       # Manual trigger — run anytime from GitHub UI
+
+jobs:
+  refresh:
+    name: Fetch data sources and seed Supabase
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Python dependencies
+        run: pip install -r scripts/requirements.txt
+
+      - name: Fetch all data sources and write indicators.json
+        env:
+          CENSUS_API_KEY: ${{ secrets.CENSUS_API_KEY }}
+        run: python scripts/refresh_data.py
+
+      - name: Seed Supabase with updated indicators
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+        run: python scripts/seed_supabase.py
+
+      - name: Commit updated indicators.json back to repo
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/indicators.json
+          git diff --staged --quiet || git commit -m "chore: annual data refresh $(date +%Y-%m-%d)"
+          git push

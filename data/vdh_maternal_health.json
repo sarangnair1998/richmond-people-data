@@ -1,0 +1,95 @@
+{
+  "source": "Virginia Department of Health — Health Statistics Annual Reports",
+  "source_url": "https://apps.vdh.virginia.gov/HealthStats/stats.htm",
+  "accessed": "2026-03-28",
+  "geography": "Richmond City (independent city, FIPS 51760)",
+  "year": 2020,
+
+  "live_births": {
+    "note": "Table 1 — Resident live births by race, 2020",
+    "total": 2999,
+    "by_race": {
+      "white": 1229,
+      "black": 1468,
+      "other": 302
+    },
+    "birth_rate_per_1000_pop": {
+      "total": 12.9,
+      "white": 10.8,
+      "black": 13.3,
+      "other": 38.5
+    }
+  },
+
+  "non_marital_births": {
+    "note": "Table 2 — Resident non-marital live births, 2020",
+    "total": 1776,
+    "pct_of_total_births": 59.2,
+    "by_race": {
+      "white": { "count": 335, "pct": 27.3 },
+      "black": { "count": 1255, "pct": 85.5 },
+      "other": { "count": 186, "pct": 61.6 }
+    },
+    "virginia_pct": null
+  },
+
+  "low_weight_births": {
+    "note": "Table 10 — Resident low weight live births (<2,500g) by race, 2020",
+    "total": 346,
+    "pct_of_total_births": 11.5,
+    "virginia_pct": 8.3,
+    "by_race": {
+      "white": { "count": 81, "pct": 6.6 },
+      "black": { "count": 242, "pct": 16.5 },
+      "other": { "count": 23, "pct": 7.6 }
+    },
+    "very_low_weight_under_1500g": {
+      "total": 82,
+      "pct_of_total_births": 2.7,
+      "virginia_pct": 1.4,
+      "by_race": {
+        "white": { "count": 18, "pct": 1.5 },
+        "black": { "count": 58, "pct": 4.0 },
+        "other": { "count": 6, "pct": 2.0 }
+      }
+    }
+  },
+
+  "infant_deaths": {
+    "note": "Table 1 — Resident infant deaths with rates per 1,000 live births, 2020. Suppression warning: counts under 20 are unreliable for trend analysis.",
+    "total_resident_deaths": 21,
+    "rate_per_1000_births": {
+      "total": 7.0,
+      "white": 5.7,
+      "black": 8.9,
+      "other": 3.3
+    },
+    "by_race": {
+      "white": 7,
+      "black": 13,
+      "other": 1
+    },
+    "virginia_rate_per_1000": 5.3
+  },
+
+  "teen_pregnancy": {
+    "note": "Table 8 — Resident teenage pregnancies by age of mother, 2020",
+    "total_teen_pregnancies": 252,
+    "by_outcome": {
+      "live_births": 173,
+      "induced_terminations": 75,
+      "fetal_deaths": 4
+    },
+    "by_age": {
+      "under_15": { "total": 4, "live_births": 3 },
+      "age_15_to_17": { "total": 65, "live_births": 45 },
+      "age_18_to_19": { "total": 183, "live_births": 125 }
+    },
+    "rate_per_1000_female_teens_total": 20.9,
+    "by_race": {
+      "white": { "total": 57, "live_births": 34 },
+      "black": { "total": 165, "live_births": 114 },
+      "other": { "total": 29, "live_births": 25 }
+    }
+  }
+}

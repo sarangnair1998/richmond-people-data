@@ -1,65 +1,237 @@
-import Image from "next/image";
+"use client";
+
+import { useEffect, useState, useMemo } from "react";
+import StatCard from "@/components/StatCard";
+import IndicatorChart from "@/components/IndicatorChart";
+import DataTable from "@/components/DataTable";
+import ExportCSV from "@/components/ExportCSV";
+import ChartBuilder from "@/components/ChartBuilder";
+import { getAllIndicators, type Indicator } from "@/lib/data";
+
+type Tab = "health" | "maternal_health" | "population" | "poverty" | "education";
+
+const TABS: { id: Tab; label: string }[] = [
+  { id: "maternal_health", label: "Maternal Health" },
+  { id: "health", label: "Health" },
+  { id: "population", label: "Population" },
+  { id: "poverty", label: "Poverty" },
+  { id: "education", label: "Education" },
+];
+
+const STAT_CARDS: Record<Tab, Array<{
+  label: string; name: string; race: string; source: string;
+  color: string; decimals: number; prefix?: string; unit?: string;
+}>> = {
+  maternal_health: [
+    { label: "Resident Live Births", name: "Resident Live Births", race: "all", source: "VDH 2020", color: "border-blue-600", decimals: 0 },
+    { label: "Infant Mortality Rate", name: "Infant Mortality Rate", race: "all", source: "VDH 2020", color: "border-red-600", decimals: 1, unit: "/1k" },
+    { label: "Low Birth Weight", name: "Low Birth Weight (<2,500g)", race: "all", source: "VDH 2020", color: "border-amber-500", decimals: 1, unit: "%" },
+    { label: "Non-Marital Births", name: "Non-Marital Births", race: "all", source: "VDH 2020", color: "border-purple-500", decimals: 1, unit: "%" },
+  ],
+  health: [
+    { label: "Total Population", name: "Total Population", race: "all", source: "Census 2023", color: "border-blue-600", decimals: 0 },
+    { label: "Uninsured Adults", name: "Uninsured Adults", race: "all", source: "Census 2023", color: "border-red-500", decimals: 1, unit: "%" },
+    { label: "Depression", name: "Depression", race: "all", source: "CDC PLACES 2022", color: "border-amber-500", decimals: 1, unit: "%" },
+    { label: "Obesity", name: "Obesity", race: "all", source: "CDC PLACES 2022", color: "border-orange-500", decimals: 1, unit: "%" },
+  ],
+  population: [
+    { label: "Total Population", name: "Total Population", race: "all", source: "Census 2023", color: "border-blue-600", decimals: 0 },
+    { label: "Median Age", name: "Median Age", race: "all", source: "Census 2023", color: "border-cyan-500", decimals: 1, unit: " yrs" },
+    { label: "Children Under 5", name: "Population Under 5", race: "all", source: "Census 2023", color: "border-green-500", decimals: 0 },
+    { label: "Women 15–44", name: "Women of Childbearing Age (15–44)", race: "all", source: "Census 2023", color: "border-purple-500", decimals: 0 },
+  ],
+  poverty: [
+    { label: "Poverty Rate", name: "Poverty Rate", race: "all", source: "Census 2023", color: "border-amber-500", decimals: 1, unit: "%" },
+    { label: "People Below Poverty", name: "People Below Poverty Line", race: "all", source: "Census 2023", color: "border-red-500", decimals: 0 },
+    { label: "Child Poverty Rate", name: "Child Poverty Rate (Under 18)", race: "all", source: "Census 2023", color: "border-orange-500", decimals: 1, unit: "%" },
+    { label: "Cost Burdened Renters", name: "Renters — Cost Burdened (30%+ income on rent)", race: "all", source: "Census 2023", color: "border-yellow-500", decimals: 1, unit: "%" },
+  ],
+  education: [
+    { label: "Student Enrollment", name: "Total Student Enrollment", race: "all", source: "VDOE 2025", color: "border-green-600", decimals: 0 },
+    { label: "Graduation Rate", name: "4-Year Graduation Rate", race: "all", source: "VDOE 2025", color: "border-blue-600", decimals: 1, unit: "%" },
+    { label: "SOL Reading Pass Rate", name: "SOL Pass Rate — Reading", race: "all", source: "VDOE 2025", color: "border-cyan-500", decimals: 0, unit: "%" },
+    { label: "Chronic Absenteeism", name: "Chronic Absenteeism Rate", race: "all", source: "VDOE 2025", color: "border-amber-500", decimals: 1, unit: "%" },
+  ],
+};
+
+const DEFAULT_CHART: Record<Tab, string> = {
+  maternal_health: "Low Birth Weight (<2,500g)",
+  health: "Uninsured Adults",
+  population: "Total Population",
+  poverty: "Poverty Rate",
+  education: "4-Year Graduation Rate",
+};
 
 export default function Home() {
+  const [activeTab, setActiveTab] = useState<Tab>("maternal_health");
+  const [indicators, setIndicators] = useState<Indicator[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedIndicator, setSelectedIndicator] = useState(DEFAULT_CHART["maternal_health"]);
+  const [selectedRace, setSelectedRace] = useState("all");
+
+  useEffect(() => {
+    getAllIndicators()
+      .then(setIndicators)
+      .catch(console.error)
+      .finally(() => setLoading(false));
+  }, []);
+
+  // When tab changes, reset chart selection
+  useEffect(() => {
+    setSelectedIndicator(DEFAULT_CHART[activeTab]);
+    setSelectedRace("all");
+  }, [activeTab]);
+
+  const tabIndicators = useMemo(
+    () => indicators.filter((i) => i.category === activeTab),
+    [indicators, activeTab]
+  );
+
+  // Unique indicator names for dropdown (race=all only, with va_average)
+  const chartableNames = useMemo(
+    () => Array.from(new Set(
+      tabIndicators
+        .filter((i) => i.value !== null)
+        .map((i) => i.name)
+    )).sort(),
+    [tabIndicators]
+  );
+
+  // Unique races for selected indicator
+  const availableRaces = useMemo(
+    () => Array.from(new Set(
+      tabIndicators.filter((i) => i.name === selectedIndicator && i.value !== null).map((i) => i.race)
+    )).sort(),
+    [tabIndicators, selectedIndicator]
+  );
+
+  // Stat card values from live data
+  function getCardValue(name: string, race: string): number {
+    const match = indicators.find((i) => i.name === name && i.race === race && i.value !== null);
+    return match?.value ?? 0;
+  }
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <div className="min-h-screen bg-slate-50">
+      {/* Header */}
+      <header style={{ backgroundColor: "#1e3a5f" }} className="px-6 py-4">
+        <div className="max-w-6xl mx-auto flex items-center justify-between">
+          <div>
+            <h1 className="text-xl font-bold text-white tracking-tight">RVA People Data</h1>
+            <p className="text-xs text-blue-200 mt-0.5">Richmond City · Official Government Sources Only</p>
+          </div>
+          <div className="flex gap-2">
+            {["Census", "VDH", "VDOE", "CDC"].map((s) => (
+              <span key={s} className="text-xs bg-white/10 text-blue-100 rounded-full px-2 py-0.5 border border-white/20">
+                {s}
+              </span>
+            ))}
+          </div>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+      </header>
+
+      {/* Tab Navigation */}
+      <nav style={{ backgroundColor: "#1e3a5f" }} className="border-t border-white/10">
+        <div className="max-w-6xl mx-auto flex">
+          {TABS.map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`px-5 py-3 text-sm font-semibold tracking-wide transition-colors border-b-2 ${
+                activeTab === tab.id
+                  ? "border-blue-400 text-white"
+                  : "border-transparent text-blue-200 hover:text-white hover:border-blue-300"
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
         </div>
+      </nav>
+
+      <main className="max-w-6xl mx-auto px-6 py-8 space-y-8">
+        {loading ? (
+          <div className="flex items-center justify-center h-64 text-slate-400 text-sm">
+            Loading data…
+          </div>
+        ) : (
+          <>
+            {/* Stat Cards */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {STAT_CARDS[activeTab].map((card) => (
+                <StatCard
+                  key={card.name + card.race}
+                  label={card.label}
+                  value={getCardValue(card.name, card.race)}
+                  unit={card.unit ?? ""}
+                  prefix={card.prefix ?? ""}
+                  source={card.source}
+                  year=""
+                  color={card.color}
+                  decimals={card.decimals}
+                />
+              ))}
+            </div>
+
+            {/* Chart Controls + Chart */}
+            <div className="space-y-3">
+              <div className="flex flex-wrap gap-3 items-center">
+                <select
+                  value={selectedIndicator}
+                  onChange={(e) => { setSelectedIndicator(e.target.value); setSelectedRace("all"); }}
+                  className="text-sm border border-slate-200 bg-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  {chartableNames.map((n) => (
+                    <option key={n} value={n}>{n}</option>
+                  ))}
+                </select>
+                {availableRaces.length > 1 && (
+                  <select
+                    value={selectedRace}
+                    onChange={(e) => setSelectedRace(e.target.value)}
+                    className="text-sm border border-slate-200 bg-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    {availableRaces.map((r) => (
+                      <option key={r} value={r}>{r === "all" ? "All groups" : r}</option>
+                    ))}
+                  </select>
+                )}
+              </div>
+              <IndicatorChart
+                indicators={tabIndicators}
+                selectedName={selectedIndicator}
+                selectedRace={selectedRace}
+              />
+            </div>
+
+            {/* Data Table + Export */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <h2 className="text-sm font-semibold text-slate-700">All Indicators</h2>
+                <ExportCSV
+                  indicators={tabIndicators}
+                  filename={`richmond-${activeTab}-data.csv`}
+                />
+              </div>
+              <DataTable indicators={tabIndicators} />
+            </div>
+
+            {/* Chart Builder */}
+            <ChartBuilder indicators={indicators} />
+          </>
+        )}
       </main>
+
+      {/* Footer */}
+      <footer className="border-t border-slate-200 bg-white mt-12 px-6 py-6">
+        <div className="max-w-6xl mx-auto text-xs text-slate-400 flex flex-wrap gap-4 justify-between">
+          <span>
+            Data sourced from U.S. Census Bureau (ACS 5-Year 2023), Virginia Department of Health (2020),
+            Virginia Department of Education (2024–2025), and CDC PLACES (2022).
+          </span>
+          <span>Not an official City of Richmond publication · Last refresh: March 28, 2026</span>
+        </div>
+      </footer>
     </div>
   );
 }
