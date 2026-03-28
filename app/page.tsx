@@ -129,6 +129,13 @@ export default function Home() {
     [subcatIndicators, selectedIndicator]
   );
 
+  // If the selected race isn't valid for the current indicator, auto-select the first available
+  useEffect(() => {
+    if (availableRaces.length > 0 && !availableRaces.includes(selectedRace)) {
+      setSelectedRace(availableRaces[0]);
+    }
+  }, [availableRaces]);
+
   // Download only the checked rows from the table
   function downloadSelected() {
     const rows = indicators.filter((i) => selectedIds.includes(i.id));
