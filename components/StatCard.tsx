@@ -10,6 +10,7 @@ type Props = {
   prefix?: string;
   source: string;
   year: number | string;
+  vintage?: "Final" | "Provisional";
   color: string; // tailwind border color class e.g. "border-blue-600"
   decimals?: number;
 };
@@ -21,6 +22,7 @@ export default function StatCard({
   prefix = "",
   source,
   year,
+  vintage,
   color,
   decimals = 0,
 }: Props) {
@@ -47,7 +49,16 @@ export default function StatCard({
           {prefix}{value.toFixed(decimals).replace(/\B(?=(\d{3})+(?!\d))/g, ",")}{unit}
         </span>
       </p>
-      <p className="text-xs text-slate-400 mt-1">{source} · {year}</p>
+      <p className="text-xs text-slate-400 mt-1 flex items-center gap-1.5 flex-wrap">
+        <span>{source} · {year}</span>
+        {vintage && (
+          <span className={`text-xs font-semibold px-1.5 py-0.5 rounded-full ${
+            vintage === "Final"
+              ? "bg-green-100 text-green-700"
+              : "bg-amber-100 text-amber-700"
+          }`}>{vintage}</span>
+        )}
+      </p>
     </div>
   );
 }

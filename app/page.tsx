@@ -156,9 +156,14 @@ export default function Home() {
   }
 
   // Stat card values from live data
-  function getCardValue(name: string, race: string): number {
+  function getCardMeta(name: string, race: string) {
     const match = indicators.find((i) => i.name === name && i.race === race && i.value !== null);
-    return match?.value ?? 0;
+    const year = match?.year ?? null;
+    return {
+      value: match?.value ?? 0,
+      year: year ?? "",
+      vintage: year ? (year <= 2023 ? "Final" : "Provisional") as "Final" | "Provisional" : undefined,
+    };
   }
 
   const SUBCAT_COLORS = ["border-blue-600", "border-emerald-500", "border-amber-500", "border-rose-500"];
@@ -264,31 +269,39 @@ export default function Home() {
             {/* Stat Cards */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {subcatStatCards
-                ? subcatStatCards.map((card, idx) => (
-                    <StatCard
-                      key={card.id}
-                      label={card.name}
-                      value={card.value!}
-                      unit={card.unit === "%" ? "%" : ""}
-                      source={card.source}
-                      year={card.year ?? ""}
-                      color={SUBCAT_COLORS[idx % SUBCAT_COLORS.length]}
-                      decimals={card.value! % 1 === 0 ? 0 : 1}
-                    />
-                  ))
-                : STAT_CARDS[activeTab].map((card) => (
-                    <StatCard
-                      key={card.name + card.race}
-                      label={card.label}
-                      value={getCardValue(card.name, card.race)}
-                      unit={card.unit ?? ""}
-                      prefix={card.prefix ?? ""}
-                      source={card.source}
-                      year=""
-                      color={card.color}
-                      decimals={card.decimals}
-                    />
-                  ))
+                ? subcatStatCards.map((card, idx) => {
+                    const yr = card.year ?? null;
+                    return (
+                      <StatCard
+                        key={card.id}
+                        label={card.name}
+                        value={card.value!}
+                        unit={card.unit === "%" ? "%" : ""}
+                        source={card.source}
+                        year={yr ?? ""}
+                        vintage={yr ? (yr <= 2023 ? "Final" : "Provisional") : undefined}
+                        color={SUBCAT_COLORS[idx % SUBCAT_COLORS.length]}
+                        decimals={card.value! % 1 === 0 ? 0 : 1}
+                      />
+                    );
+                  })
+                : STAT_CARDS[activeTab].map((card) => {
+                    const meta = getCardMeta(card.name, card.race);
+                    return (
+                      <StatCard
+                        key={card.name + card.race}
+                        label={card.label}
+                        value={meta.value}
+                        unit={card.unit ?? ""}
+                        prefix={card.prefix ?? ""}
+                        source={card.source}
+                        year={meta.year}
+                        vintage={meta.vintage}
+                        color={card.color}
+                        decimals={card.decimals}
+                      />
+                    );
+                  })
               }
             </div>
 
