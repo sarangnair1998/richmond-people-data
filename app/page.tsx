@@ -161,6 +161,30 @@ export default function Home() {
     return match?.value ?? 0;
   }
 
+  const SUBCAT_COLORS = ["border-blue-600", "border-emerald-500", "border-amber-500", "border-rose-500"];
+
+  // When a subcategory is active, derive 4 stat cards from it dynamically
+  const subcatStatCards = useMemo(() => {
+    if (activeSubcat === "all") return null;
+    const seen = new Set<string>();
+    const cards: Indicator[] = [];
+    // prefer race=all rows first
+    for (const i of subcatIndicators) {
+      if (i.race === "all" && i.value !== null && !seen.has(i.name)) {
+        seen.add(i.name); cards.push(i);
+        if (cards.length === 4) return cards;
+      }
+    }
+    // fill remaining slots with any race
+    for (const i of subcatIndicators) {
+      if (i.value !== null && !seen.has(i.name)) {
+        seen.add(i.name); cards.push(i);
+        if (cards.length === 4) return cards;
+      }
+    }
+    return cards;
+  }, [subcatIndicators, activeSubcat]);
+
   return (
     <div className="min-h-screen bg-slate-50">
       {/* Header */}
@@ -239,19 +263,33 @@ export default function Home() {
           <>
             {/* Stat Cards */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {STAT_CARDS[activeTab].map((card) => (
-                <StatCard
-                  key={card.name + card.race}
-                  label={card.label}
-                  value={getCardValue(card.name, card.race)}
-                  unit={card.unit ?? ""}
-                  prefix={card.prefix ?? ""}
-                  source={card.source}
-                  year=""
-                  color={card.color}
-                  decimals={card.decimals}
-                />
-              ))}
+              {subcatStatCards
+                ? subcatStatCards.map((card, idx) => (
+                    <StatCard
+                      key={card.id}
+                      label={card.name}
+                      value={card.value!}
+                      unit={card.unit === "%" ? "%" : ""}
+                      source={card.source}
+                      year={card.year ?? ""}
+                      color={SUBCAT_COLORS[idx % SUBCAT_COLORS.length]}
+                      decimals={card.value! % 1 === 0 ? 0 : 1}
+                    />
+                  ))
+                : STAT_CARDS[activeTab].map((card) => (
+                    <StatCard
+                      key={card.name + card.race}
+                      label={card.label}
+                      value={getCardValue(card.name, card.race)}
+                      unit={card.unit ?? ""}
+                      prefix={card.prefix ?? ""}
+                      source={card.source}
+                      year=""
+                      color={card.color}
+                      decimals={card.decimals}
+                    />
+                  ))
+              }
             </div>
 
             {/* Racial Disparity Callout */}
