@@ -21,6 +21,7 @@ Sources covered:
     - VDOE Cohort Graduation       → data/vdoe_cohort_graduation.csv
     - VDOE Fall Membership         → data/vdoe_fall_membership.csv
     - VDOE Free/Reduced Lunch      → data/vdoe_free_reduced_lunch_2024_2025.xlsx
+    - CDC WONDER Natality CSVs     → data/preterm.csv, data/prenatal.csv, data/low_birth_weight.csv
 
 Usage:
   python scripts/refresh_data.py
@@ -639,6 +640,128 @@ def load_vdoe(records: list) -> None:
 
 
 # ---------------------------------------------------------------------------
+# CDC WONDER static CSVs  (Tier 3 — download manually from wonder.cdc.gov)
+# ---------------------------------------------------------------------------
+def load_wonder_csv(records: list) -> None:
+    src = "CDC WONDER"
+    src_url = "https://wonder.cdc.gov/natality-expanded-current.html"
+
+    def to_int(val):
+        v = (val or "").strip().replace(",", "")
+        if not v or v.lower() in {"suppressed", "not available"}:
+            return 0
+        try:
+            return int(float(v))
+        except ValueError:
+            return 0
+
+    def latest_year_rate(path, rate_fn):
+        from collections import defaultdict
+        by_year = defaultdict(list)
+        with open(path, newline="", encoding="utf-8-sig") as f:
+            for row in csv.DictReader(f):
+                notes = (row.get("Notes") or "").strip().lower()
+                if notes in {"total", "---"}:
+                    continue
+                y = (row.get("Year") or "").strip()
+                if y.isdigit():
+                    by_year[int(y)].append(row)
+        for yr in sorted(by_year, reverse=True):
+            rate = rate_fn(by_year[yr])
+            if rate is not None:
+                return yr, rate
+        return None, None
+
+    # --- Preterm birth rate ---
+    preterm_path = DATA_DIR / "preterm.csv"
+    if preterm_path.exists():
+        PRETERM_CODES = {"01", "02", "03", "04", "05"}
+
+        def preterm_rate(rows):
+            total = preterm = 0
+            for row in rows:
+                code = (row.get("OE Gestational Age Recode 11 Code") or "").strip()
+                if code in {"", "11"}:
+                    continue
+                births = to_int(row.get("Births"))
+                total += births
+                if code in PRETERM_CODES:
+                    preterm += births
+            return round(preterm / total * 100, 1) if total else None
+
+        yr, rate = latest_year_rate(preterm_path, preterm_rate)
+        if rate is not None:
+            records.append(indicator(
+                "maternal_health", "birth_outcomes",
+                "Preterm Birth Rate", rate, "%",
+                src, src_url, yr,
+                va_average=10.1,
+                definition="Births before 37 weeks gestation as % of live births.",
+                notes=f"Source: CDC WONDER Natality {yr}. Virginia average: March of Dimes 2025 Report Card.",
+            ))
+            print(f"  WONDER preterm birth rate {yr}: {rate}%")
+
+    # --- Late or no prenatal care ---
+    prenatal_path = DATA_DIR / "prenatal.csv"
+    if prenatal_path.exists():
+        LATE_CODES = {"2", "3", "4"}
+
+        def prenatal_rate(rows):
+            total = late = 0
+            for row in rows:
+                code = (row.get("Trimester Prenatal Care Began Code") or "").strip()
+                if code in {"5", "100", ""}:
+                    continue
+                births = to_int(row.get("Births"))
+                total += births
+                if code in LATE_CODES:
+                    late += births
+            return round(late / total * 100, 1) if total else None
+
+        yr, rate = latest_year_rate(prenatal_path, prenatal_rate)
+        if rate is not None:
+            records.append(indicator(
+                "maternal_health", "prenatal_care",
+                "Late or No Prenatal Care", rate, "%",
+                src, src_url, yr,
+                va_average=14.1,
+                definition="% of births where mother began prenatal care in the 4th month or later, or received no care.",
+                notes=f"Source: CDC WONDER Natality {yr}. Virginia average: March of Dimes 2025 Report Card.",
+            ))
+            print(f"  WONDER late/no prenatal care {yr}: {rate}%")
+
+    # --- Low birth weight ---
+    lbw_path = DATA_DIR / "low_birth_weight.csv"
+    if lbw_path.exists():
+        LBW_CODES = {"01", "02", "03", "04", "05"}
+
+        def lbw_rate(rows):
+            total = lbw = 0
+            for row in rows:
+                code = (row.get("Infant Birth Weight 12 Code") or "").strip()
+                if code in {"12", ""}:
+                    continue
+                births = to_int(row.get("Births"))
+                total += births
+                if code in LBW_CODES:
+                    lbw += births
+            return round(lbw / total * 100, 1) if total else None
+
+        yr, rate = latest_year_rate(lbw_path, lbw_rate)
+        if rate is not None:
+            records.append(indicator(
+                "maternal_health", "birth_outcomes",
+                "Low Birth Weight (<2,500g)", rate, "%",
+                src, src_url, yr,
+                definition="% of live births weighing less than 2,500 grams.",
+                notes=f"Source: CDC WONDER Natality {yr}.",
+            ))
+            print(f"  WONDER low birth weight {yr}: {rate}%")
+
+    print(f"  WONDER: added indicators from CDC WONDER Natality CSVs")
+
+
+# ---------------------------------------------------------------------------
 # Main
 # ---------------------------------------------------------------------------
 def main() -> None:
@@ -678,6 +801,11 @@ def main() -> None:
         load_vdoe(records)
     except Exception as e:
         print(f"ERROR in VDOE load: {e}", file=sys.stderr)
+
+    try:
+        load_wonder_csv(records)
+    except Exception as e:
+        print(f"ERROR in WONDER CSV load: {e}", file=sys.stderr)
 
     # Write output
     DATA_DIR.mkdir(exist_ok=True)

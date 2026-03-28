@@ -6,6 +6,8 @@ import IndicatorChart from "@/components/IndicatorChart";
 import DataTable from "@/components/DataTable";
 import ExportCSV from "@/components/ExportCSV";
 import ChartBuilder from "@/components/ChartBuilder";
+import DisparityCallout from "@/components/DisparityCallout";
+import GrantPackButton from "@/components/GrantPackButton";
 import { getAllIndicators, type Indicator } from "@/lib/data";
 
 type Tab = "health" | "maternal_health" | "population" | "poverty" | "education";
@@ -26,7 +28,7 @@ const STAT_CARDS: Record<Tab, Array<{
     { label: "Resident Live Births", name: "Resident Live Births", race: "all", source: "VDH 2020", color: "border-blue-600", decimals: 0 },
     { label: "Infant Mortality Rate", name: "Infant Mortality Rate", race: "all", source: "VDH 2020", color: "border-red-600", decimals: 1, unit: "/1k" },
     { label: "Low Birth Weight", name: "Low Birth Weight (<2,500g)", race: "all", source: "VDH 2020", color: "border-amber-500", decimals: 1, unit: "%" },
-    { label: "Non-Marital Births", name: "Non-Marital Births", race: "all", source: "VDH 2020", color: "border-purple-500", decimals: 1, unit: "%" },
+    { label: "Preterm Birth Rate", name: "Preterm Birth Rate", race: "all", source: "CDC WONDER 2024", color: "border-red-600", decimals: 1, unit: "%" },
   ],
   health: [
     { label: "Total Population", name: "Total Population", race: "all", source: "Census 2023", color: "border-blue-600", decimals: 0 },
@@ -55,7 +57,7 @@ const STAT_CARDS: Record<Tab, Array<{
 };
 
 const DEFAULT_CHART: Record<Tab, string> = {
-  maternal_health: "Low Birth Weight (<2,500g)",
+  maternal_health: "Preterm Birth Rate",
   health: "Uninsured Adults",
   population: "Total Population",
   poverty: "Poverty Rate",
@@ -173,6 +175,9 @@ export default function Home() {
               ))}
             </div>
 
+            {/* Racial Disparity Callout */}
+            <DisparityCallout indicators={tabIndicators} activeTab={activeTab} />
+
             {/* Chart Controls + Chart */}
             <div className="space-y-3">
               <div className="flex flex-wrap gap-3 items-center">
@@ -208,10 +213,15 @@ export default function Home() {
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <h2 className="text-sm font-semibold text-slate-700">All Indicators</h2>
-                <ExportCSV
-                  indicators={tabIndicators}
-                  filename={`richmond-${activeTab}-data.csv`}
-                />
+                <div className="flex items-center gap-2">
+                  {activeTab === "maternal_health" && (
+                    <GrantPackButton indicators={indicators} />
+                  )}
+                  <ExportCSV
+                    indicators={tabIndicators}
+                    filename={`richmond-${activeTab}-data.csv`}
+                  />
+                </div>
               </div>
               <DataTable indicators={tabIndicators} />
             </div>

@@ -1,0 +1,86 @@
+"Notes","Year","Year Code","Trimester Prenatal Care Began","Trimester Prenatal Care Began Code",Births
+,"2016","2016","1st to 3rd month","1",1930
+,"2016","2016","4th to 6th month","2",599
+,"2016","2016","7th to final month","3",151
+,"2016","2016","No prenatal care","4",51
+,"2016","2016","Unknown or Not Stated","5",297
+,"2016","2016","Not Reported","100",0
+"Total","2016","2016",,,3028
+,"2017","2017","1st to 3rd month","1",1946
+,"2017","2017","4th to 6th month","2",555
+,"2017","2017","7th to final month","3",138
+,"2017","2017","No prenatal care","4",68
+,"2017","2017","Unknown or Not Stated","5",324
+,"2017","2017","Not Reported","100",0
+"Total","2017","2017",,,3031
+,"2018","2018","1st to 3rd month","1",2017
+,"2018","2018","4th to 6th month","2",572
+,"2018","2018","7th to final month","3",122
+,"2018","2018","No prenatal care","4",69
+,"2018","2018","Unknown or Not Stated","5",359
+,"2018","2018","Not Reported","100",0
+"Total","2018","2018",,,3139
+,"2019","2019","1st to 3rd month","1",2191
+,"2019","2019","4th to 6th month","2",631
+,"2019","2019","7th to final month","3",134
+,"2019","2019","No prenatal care","4",56
+,"2019","2019","Unknown or Not Stated","5",80
+,"2019","2019","Not Reported","100",0
+"Total","2019","2019",,,3092
+,"2020","2020","1st to 3rd month","1",2229
+,"2020","2020","4th to 6th month","2",521
+,"2020","2020","7th to final month","3",132
+,"2020","2020","No prenatal care","4",73
+,"2020","2020","Unknown or Not Stated","5",44
+,"2020","2020","Not Reported","100",0
+"Total","2020","2020",,,2999
+,"2021","2021","1st to 3rd month","1",2368
+,"2021","2021","4th to 6th month","2",413
+,"2021","2021","7th to final month","3",98
+,"2021","2021","No prenatal care","4",84
+,"2021","2021","Unknown or Not Stated","5",16
+,"2021","2021","Not Reported","100",0
+"Total","2021","2021",,,2979
+,"2022","2022","1st to 3rd month","1",2267
+,"2022","2022","4th to 6th month","2",420
+,"2022","2022","7th to final month","3",91
+,"2022","2022","No prenatal care","4",107
+,"2022","2022","Unknown or Not Stated","5",28
+,"2022","2022","Not Reported","100",0
+"Total","2022","2022",,,2913
+,"2023","2023","1st to 3rd month","1",2205
+,"2023","2023","4th to 6th month","2",458
+,"2023","2023","7th to final month","3",116
+,"2023","2023","No prenatal care","4",83
+,"2023","2023","Unknown or Not Stated","5",11
+,"2023","2023","Not Reported","100",0
+"Total","2023","2023",,,2873
+,"2024","2024","1st to 3rd month","1",2222
+,"2024","2024","4th to 6th month","2",468
+,"2024","2024","7th to final month","3",118
+,"2024","2024","No prenatal care","4",97
+,"2024","2024","Unknown or Not Stated","5",20
+,"2024","2024","Not Reported","100",0
+"Total","2024","2024",,,2925
+"Total",,,,,26979
+"---"
+"Dataset: Natality, 2016-2024 expanded"
+"Query Parameters:"
+"States: Richmond city, VA (51760)"
+"Group By: Year; Trimester Prenatal Care Began"
+"Show Totals: True"
+"Show Zero Values: True"
+"Show Suppressed: True"
+"Calculate Rates Per: 1,000"
+"---"
+"Help: See http://wonder.cdc.gov/wonder/help/natality-expanded.html for more information."
+"---"
+"Query Date: Mar 28, 2026 2:44:04 PM"
+"---"
+"Suggested Citation: Centers for Disease Control and Prevention, National Center for Health Statistics. National Vital Statistics"
+"System, Natality on CDC WONDER Online Database. Data are from the Natality Records 2016-2024, as compiled from data provided by"
+"the 57 vital statistics jurisdictions through the Vital Statistics Cooperative Program. Accessed at"
+"http://wonder.cdc.gov/natality-expanded-current.html on Mar 28, 2026 2:44:04 PM"
+"---"
+Caveats:
+"1. Each birth record represents one liveborn infant."
