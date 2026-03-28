@@ -366,7 +366,7 @@ def fetch_cdc_teen_births(records: list) -> None:
         rate = safe_float(str(row.get("birth_rate", "")))
         if year and rate:
             records.append(indicator(
-                "maternal_health","birth_outcomes",
+                "health","birth_outcomes",
                 "Teen Birth Rate (Ages 15–19)",
                 rate,"per 1,000 women 15–19",
                 src,src_url,year,
@@ -412,9 +412,9 @@ def fetch_vdh(records: list, skip: bool = False) -> None:
             nums = [x for x in row if x not in ("RICHMOND", "CITY")]
             if len(nums) >= 12:
                 records += [
-                    indicator("maternal_health","birth_outcomes","Resident Live Births",
+                    indicator("health","birth_outcomes","Resident Live Births",
                               int(nums[4].replace(",","")), "count",src,src_url,VDH_YEAR),
-                    indicator("maternal_health","birth_outcomes","Birth Rate (per 1,000 population)",
+                    indicator("health","birth_outcomes","Birth Rate (per 1,000 population)",
                               safe_float(nums[8]),"per 1,000",src,src_url,VDH_YEAR,
                               va_average=None),
                 ]
@@ -429,12 +429,12 @@ def fetch_vdh(records: list, skip: bool = False) -> None:
             # RICHMOND CITY 2999 1229 1468 302 51.0 40.1 57.4 115.8 1776 335 1255 186 59.2 27.3 85.5 61.6
             if len(nums) >= 13:
                 records += [
-                    indicator("maternal_health","birth_outcomes","Non-Marital Births",
+                    indicator("health","birth_outcomes","Non-Marital Births",
                               safe_float(nums[12]),"%",src,src_url,VDH_YEAR,
                               race="all",definition="% of live births to unmarried mothers"),
-                    indicator("maternal_health","birth_outcomes","Non-Marital Births",
+                    indicator("health","birth_outcomes","Non-Marital Births",
                               safe_float(nums[13]),"%",src,src_url,VDH_YEAR,race="white"),
-                    indicator("maternal_health","birth_outcomes","Non-Marital Births",
+                    indicator("health","birth_outcomes","Non-Marital Births",
                               safe_float(nums[14]),"%",src,src_url,VDH_YEAR,race="black"),
                 ]
 
@@ -448,18 +448,18 @@ def fetch_vdh(records: list, skip: bool = False) -> None:
             # RICHMOND CITY 346 81 242 23 11.5 6.6 16.5 7.6 82 18 58 6 2.7 1.5 4.0 2.0
             if len(nums) >= 16:
                 records += [
-                    indicator("maternal_health","birth_outcomes","Low Birth Weight (<2,500g)",
+                    indicator("health","birth_outcomes","Low Birth Weight (<2,500g)",
                               safe_float(nums[4]),"%",src,src_url,VDH_YEAR,
                               va_average=8.3, race="all",
                               definition="% of live births weighing less than 2,500 grams"),
-                    indicator("maternal_health","birth_outcomes","Low Birth Weight (<2,500g)",
+                    indicator("health","birth_outcomes","Low Birth Weight (<2,500g)",
                               safe_float(nums[5]),"%",src,src_url,VDH_YEAR,race="white"),
-                    indicator("maternal_health","birth_outcomes","Low Birth Weight (<2,500g)",
+                    indicator("health","birth_outcomes","Low Birth Weight (<2,500g)",
                               safe_float(nums[6]),"%",src,src_url,VDH_YEAR,race="black"),
-                    indicator("maternal_health","birth_outcomes","Very Low Birth Weight (<1,500g)",
+                    indicator("health","birth_outcomes","Very Low Birth Weight (<1,500g)",
                               safe_float(nums[12]),"%",src,src_url,VDH_YEAR,
                               va_average=1.4, race="all"),
-                    indicator("maternal_health","birth_outcomes","Very Low Birth Weight (<1,500g)",
+                    indicator("health","birth_outcomes","Very Low Birth Weight (<1,500g)",
                               safe_float(nums[14]),"%",src,src_url,VDH_YEAR,race="black"),
                 ]
 
@@ -473,18 +473,18 @@ def fetch_vdh(records: list, skip: bool = False) -> None:
             # RICHMOND CITY 57 20 31 6 21 7 13 1 7.0 5.7 8.9 3.3
             if len(nums) >= 12:
                 records += [
-                    indicator("maternal_health","infant_mortality","Infant Mortality Rate",
+                    indicator("health","infant_mortality","Infant Mortality Rate",
                               safe_float(nums[8]),"per 1,000 live births",
                               src,src_url,VDH_YEAR, va_average=5.3,
                               race="all",
                               notes="Suppress if fewer than 20 deaths — counts near threshold"),
-                    indicator("maternal_health","infant_mortality","Infant Mortality Rate",
+                    indicator("health","infant_mortality","Infant Mortality Rate",
                               safe_float(nums[9]),"per 1,000 live births",
                               src,src_url,VDH_YEAR,race="white"),
-                    indicator("maternal_health","infant_mortality","Infant Mortality Rate",
+                    indicator("health","infant_mortality","Infant Mortality Rate",
                               safe_float(nums[10]),"per 1,000 live births",
                               src,src_url,VDH_YEAR,race="black"),
-                    indicator("maternal_health","infant_mortality","Resident Infant Deaths",
+                    indicator("health","infant_mortality","Resident Infant Deaths",
                               int(nums[4]),"count",src,src_url,VDH_YEAR,race="all"),
                 ]
                 # Derived disparity metrics
@@ -492,11 +492,11 @@ def fetch_vdh(records: list, skip: bool = False) -> None:
                 imr_white = safe_float(nums[9])
                 if imr_black and imr_white and imr_white > 0:
                     records += [
-                        indicator("maternal_health","infant_mortality",
+                        indicator("health","infant_mortality",
                                   "Infant Mortality Rate — Black–White Difference",
                                   round(imr_black - imr_white, 1),
                                   "per 1,000",src,src_url,VDH_YEAR),
-                        indicator("maternal_health","infant_mortality",
+                        indicator("health","infant_mortality",
                                   "Infant Mortality Rate — Black–White Ratio",
                                   round(imr_black / imr_white, 2),
                                   "ratio",src,src_url,VDH_YEAR),
@@ -510,7 +510,7 @@ def fetch_vdh(records: list, skip: bool = False) -> None:
             nums = [x for x in row if x not in ("RICHMOND","CITY")]
             if len(nums) >= 6:
                 records.append(indicator(
-                    "maternal_health","birth_outcomes","Fetal Mortality Rate",
+                    "health","birth_outcomes","Fetal Mortality Rate",
                     safe_float(nums[4]) if len(nums) > 4 else None,
                     "per 1,000",src,src_url,VDH_YEAR,
                     definition="Fetal deaths per 1,000 live births + fetal deaths"))
@@ -523,7 +523,7 @@ def fetch_vdh(records: list, skip: bool = False) -> None:
             nums = [x for x in row if x not in ("RICHMOND","CITY")]
             if nums:
                 records.append(indicator(
-                    "maternal_health","adolescent_health","Teen Pregnancies (Total)",
+                    "health","adolescent_health","Teen Pregnancies (Total)",
                     int(nums[0].replace(",","")),"count",
                     src,src_url,VDH_YEAR,
                     definition="Total pregnancies to women under age 20"))
@@ -692,7 +692,7 @@ def load_wonder_csv(records: list) -> None:
         yr, rate = latest_year_rate(preterm_path, preterm_rate)
         if rate is not None:
             records.append(indicator(
-                "maternal_health", "birth_outcomes",
+                "health", "birth_outcomes",
                 "Preterm Birth Rate", rate, "%",
                 src, src_url, yr,
                 va_average=10.1,
@@ -721,7 +721,7 @@ def load_wonder_csv(records: list) -> None:
         yr, rate = latest_year_rate(prenatal_path, prenatal_rate)
         if rate is not None:
             records.append(indicator(
-                "maternal_health", "prenatal_care",
+                "health", "prenatal_care",
                 "Late or No Prenatal Care", rate, "%",
                 src, src_url, yr,
                 va_average=14.1,
@@ -750,7 +750,7 @@ def load_wonder_csv(records: list) -> None:
         yr, rate = latest_year_rate(lbw_path, lbw_rate)
         if rate is not None:
             records.append(indicator(
-                "maternal_health", "birth_outcomes",
+                "health", "birth_outcomes",
                 "Low Birth Weight (<2,500g)", rate, "%",
                 src, src_url, yr,
                 definition="% of live births weighing less than 2,500 grams.",

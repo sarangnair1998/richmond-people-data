@@ -17,7 +17,7 @@ export type Indicator = {
   notes: string | null;
 };
 
-export type Category = "health" | "maternal_health" | "population" | "poverty" | "education";
+export type Category = "health" | "population" | "poverty" | "education";
 
 export async function getIndicators(category?: Category): Promise<Indicator[]> {
   let query = supabase

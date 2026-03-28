@@ -10,10 +10,9 @@ import DisparityCallout from "@/components/DisparityCallout";
 import GrantPackButton from "@/components/GrantPackButton";
 import { getAllIndicators, type Indicator } from "@/lib/data";
 
-type Tab = "health" | "maternal_health" | "population" | "poverty" | "education";
+type Tab = "health" | "population" | "poverty" | "education";
 
 const TABS: { id: Tab; label: string }[] = [
-  { id: "maternal_health", label: "Maternal Health" },
   { id: "health", label: "Health" },
   { id: "population", label: "Population" },
   { id: "poverty", label: "Poverty" },
@@ -24,17 +23,11 @@ const STAT_CARDS: Record<Tab, Array<{
   label: string; name: string; race: string; source: string;
   color: string; decimals: number; prefix?: string; unit?: string;
 }>> = {
-  maternal_health: [
-    { label: "Resident Live Births", name: "Resident Live Births", race: "all", source: "VDH 2020", color: "border-blue-600", decimals: 0 },
-    { label: "Infant Mortality Rate", name: "Infant Mortality Rate", race: "all", source: "VDH 2020", color: "border-red-600", decimals: 1, unit: "/1k" },
-    { label: "Low Birth Weight", name: "Low Birth Weight (<2,500g)", race: "all", source: "VDH 2020", color: "border-amber-500", decimals: 1, unit: "%" },
-    { label: "Preterm Birth Rate", name: "Preterm Birth Rate", race: "all", source: "CDC WONDER 2024", color: "border-red-600", decimals: 1, unit: "%" },
-  ],
   health: [
-    { label: "Total Population", name: "Total Population", race: "all", source: "Census 2023", color: "border-blue-600", decimals: 0 },
-    { label: "Uninsured Adults", name: "Uninsured Adults", race: "all", source: "Census 2023", color: "border-red-500", decimals: 1, unit: "%" },
-    { label: "Depression", name: "Depression", race: "all", source: "CDC PLACES 2022", color: "border-amber-500", decimals: 1, unit: "%" },
-    { label: "Obesity", name: "Obesity", race: "all", source: "CDC PLACES 2022", color: "border-orange-500", decimals: 1, unit: "%" },
+    { label: "Preterm Birth Rate", name: "Preterm Birth Rate", race: "all", source: "CDC WONDER 2024", color: "border-red-600", decimals: 1, unit: "%" },
+    { label: "Infant Mortality Rate", name: "Infant Mortality Rate", race: "all", source: "VDH 2020", color: "border-red-500", decimals: 1, unit: "/1k" },
+    { label: "Uninsured Adults", name: "Uninsured Adults", race: "all", source: "Census 2023", color: "border-amber-500", decimals: 1, unit: "%" },
+    { label: "Depression", name: "Depression", race: "all", source: "CDC PLACES 2022", color: "border-orange-500", decimals: 1, unit: "%" },
   ],
   population: [
     { label: "Total Population", name: "Total Population", race: "all", source: "Census 2023", color: "border-blue-600", decimals: 0 },
@@ -57,18 +50,17 @@ const STAT_CARDS: Record<Tab, Array<{
 };
 
 const DEFAULT_CHART: Record<Tab, string> = {
-  maternal_health: "Preterm Birth Rate",
-  health: "Uninsured Adults",
+  health: "Preterm Birth Rate",
   population: "Total Population",
   poverty: "Poverty Rate",
   education: "4-Year Graduation Rate",
 };
 
 export default function Home() {
-  const [activeTab, setActiveTab] = useState<Tab>("maternal_health");
+  const [activeTab, setActiveTab] = useState<Tab>("health");
   const [indicators, setIndicators] = useState<Indicator[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedIndicator, setSelectedIndicator] = useState(DEFAULT_CHART["maternal_health"]);
+  const [selectedIndicator, setSelectedIndicator] = useState(DEFAULT_CHART["health"]);
   const [selectedRace, setSelectedRace] = useState("all");
 
   useEffect(() => {
@@ -176,7 +168,7 @@ export default function Home() {
             </div>
 
             {/* Racial Disparity Callout */}
-            <DisparityCallout indicators={tabIndicators} activeTab={activeTab} />
+            <DisparityCallout indicators={tabIndicators} />
 
             {/* Chart Controls + Chart */}
             <div className="space-y-3">
@@ -214,7 +206,7 @@ export default function Home() {
               <div className="flex items-center justify-between">
                 <h2 className="text-sm font-semibold text-slate-700">All Indicators</h2>
                 <div className="flex items-center gap-2">
-                  {activeTab === "maternal_health" && (
+                  {activeTab === "health" && (
                     <GrantPackButton indicators={indicators} />
                   )}
                   <ExportCSV
