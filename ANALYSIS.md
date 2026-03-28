@@ -129,7 +129,7 @@ To be competitive: need ~85+.
 3. **Surface the disparity explicitly** — a visible callout card or comparison: Richmond Black infant mortality vs. Richmond overall vs. Virginia average, side by side, labeled. Make the racial gap unmissable.
 
 4. **Add vintage labels** — "2023 Final" / "Provisional" badge per stat. 30 minutes of work, immediately signals credibility to health researchers.
-
+    
 ### Nice to have
 
 5. Kids Count data as a validation layer (low birthweight, infant mortality, teen births)

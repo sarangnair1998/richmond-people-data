@@ -44,6 +44,8 @@ next-env.d.ts
 
 # data source files (large binaries — ingested into Supabase, not needed in repo)
 data/*.xlsx
+data/*.xls
+data/*.csv
 data/*.pdf
 
 # python cache
