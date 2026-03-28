@@ -10,7 +10,7 @@ import requests
 from supabase import create_client
 
 SUPABASE_URL = os.environ["NEXT_PUBLIC_SUPABASE_URL"]
-SUPABASE_KEY = os.environ["SUPABASE_SERVICE_KEY"]
+SUPABASE_KEY = os.environ.get("SUPABASE_SERVICE_KEY") or os.environ["NEXT_PUBLIC_SUPABASE_ANON_KEY"]
 GROQ_API_KEY = os.environ["GROQ_API_KEY"]
 
 supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
@@ -67,16 +67,16 @@ def main():
             unique_defs[eng] = spanish
             print(f"  [{i+1}/{len(unique_defs)}] ✓ {eng[:60]}...")
         except Exception as e:
-            print(f"  [{i+1}/{len(unique_defs)}] ✗ Error: {e}")
-            unique_defs[eng] = eng  # fall back to English
-        time.sleep(0.3)  # stay within rate limit
+            print(f"  [{i+1}/{len(unique_defs)}] ✗ Error: {e} — will retry next run")
+            unique_defs[eng] = ""  # leave empty — will be retried
+        time.sleep(1.5)  # stay within rate limit
 
-    # Write back to Supabase row by row
+    # Write back to Supabase — only rows where we got a real translation
     updated = 0
     for row in rows:
         eng = row["definition"]
         spanish = unique_defs.get(eng or "", "")
-        if not spanish:
+        if not spanish or spanish == eng:
             continue
         supabase.table("indicators").update({"definition_es": spanish}).eq("id", row["id"]).execute()
         updated += 1
