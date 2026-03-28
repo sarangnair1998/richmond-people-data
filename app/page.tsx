@@ -113,6 +113,14 @@ export default function Home() {
     [subcatIndicators]
   );
 
+  // When subcategory changes, reset chart selection if current indicator isn't in the new set
+  useEffect(() => {
+    if (chartableNames.length > 0 && !chartableNames.includes(selectedIndicator)) {
+      setSelectedIndicator(chartableNames[0]);
+      setSelectedRace("all");
+    }
+  }, [chartableNames]);
+
   // Unique races for selected indicator
   const availableRaces = useMemo(
     () => Array.from(new Set(
