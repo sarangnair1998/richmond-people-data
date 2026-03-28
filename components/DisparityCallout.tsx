@@ -7,6 +7,7 @@ type Props = {
 };
 
 const RACE_LABEL: Record<string, string> = {
+  all: "Overall",
   black: "Black",
   white: "White",
   hispanic: "Hispanic",
@@ -42,9 +43,11 @@ export default function DisparityCallout({ indicators }: Props) {
   const names = Array.from(new Set(indicators.map((i) => i.name)));
 
   const rows = names.flatMap((name) => {
+    const isRateOrPct = (i: Indicator) => i.unit === "%" || i.unit.startsWith("per ");
+
+    // Race-specific rows (used for ratio calculation)
     const raceRows = indicators.filter(
-      (i) => i.name === name && i.race !== "all" && i.value !== null && RACE_LABEL[i.race]
-        && (i.unit === "%" || i.unit.startsWith("per "))
+      (i) => i.name === name && i.race !== "all" && i.value !== null && RACE_LABEL[i.race] && isRateOrPct(i)
     );
     if (raceRows.length < 2) return [];
 
@@ -69,12 +72,18 @@ export default function DisparityCallout({ indicators }: Props) {
     const bestValue  = higherIsBetter ? Math.max(...values) : Math.min(...values);
     const ratio = bestValue > 0 ? worstValue / bestValue : 0;
 
-    // Sort: worst first (highest for lower-is-better, lowest for higher-is-better)
-    const sorted = [...yearRows].sort((a, b) =>
+    // Sort race-specific rows: worst first
+    const sortedRace = [...yearRows].sort((a, b) =>
       higherIsBetter ? a.value! - b.value! : b.value! - a.value!
     );
 
-    return [{ name, year, rows: sorted, ratio, unit: sorted[0].unit, source: sorted[0].source, higherIsBetter }];
+    // Add "Overall" (all) as a reference column if available for same year
+    const overallRow = indicators.find(
+      (i) => i.name === name && i.race === "all" && i.year === year && i.value !== null && isRateOrPct(i)
+    );
+    const displayRows = overallRow ? [...sortedRace, overallRow] : sortedRace;
+
+    return [{ name, year, rows: displayRows, ratio, unit: sortedRace[0].unit, source: sortedRace[0].source, higherIsBetter }];
   });
 
   if (rows.length === 0) return null;
@@ -92,7 +101,7 @@ export default function DisparityCallout({ indicators }: Props) {
             <div className="min-w-[200px] text-xs font-semibold text-slate-600">{name}</div>
             <div className="flex items-center gap-4 flex-wrap flex-1">
               {raceRows.map((r) => (
-                <div key={r.race} className="text-center">
+                <div key={r.race} className={`text-center ${r.race === "all" ? "opacity-50 border-l border-slate-200 pl-4 ml-2" : ""}`}>
                   <div className="text-xs text-slate-500 mb-0.5">{RACE_LABEL[r.race] ?? r.race}</div>
                   <div className="text-xl font-bold text-slate-700">
                     {r.value!.toFixed(1)}{shortUnit(unit)}
