@@ -63,7 +63,7 @@ export default function DisparityCallout({ indicators }: Props) {
     <div className="rounded-xl border border-red-200 bg-red-50 p-5">
       <div className="flex items-center gap-3 mb-4">
         <div className="w-2 h-6 rounded-full bg-red-500" />
-        <span className="text-sm font-bold text-red-700 uppercase tracking-wide">Racial Disparity</span>
+        <span className="text-sm font-bold text-red-700 uppercase tracking-wide">Equity Snapshot</span>
         <span className="text-xs text-red-500">Richmond City · by race/ethnicity</span>
       </div>
       <div className="space-y-4">

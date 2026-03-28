@@ -292,7 +292,7 @@ export default function Home() {
               }
             </div>
 
-            {/* Racial Disparity Callout */}
+            {/* Equity Snapshot */}
             <DisparityCallout indicators={subcatIndicators} />
 
             {/* Chart Controls + Chart */}
