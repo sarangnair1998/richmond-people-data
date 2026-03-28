@@ -9,6 +9,7 @@ import {
   type SortingState,
 } from "@tanstack/react-table";
 import { useState, useMemo } from "react";
+import Fuse from "fuse.js";
 import type { Indicator } from "@/lib/data";
 
 const col = createColumnHelper<Indicator>();
@@ -34,17 +35,33 @@ export default function DataTable({ indicators, onSelectionChange }: Props) {
     [indicators]
   );
 
+  const fuse = useMemo(
+    () => new Fuse(indicators, {
+      keys: [
+        { name: "name", weight: 3 },
+        { name: "race", weight: 1 },
+        { name: "source", weight: 1 },
+        { name: "subcategory", weight: 1 },
+      ],
+      threshold: 0.35,
+      includeScore: false,
+      ignoreLocation: true,
+    }),
+    [indicators]
+  );
+
   const filtered = useMemo(() => {
-    const tokens = globalFilter.toLowerCase().split(/\s+/).filter(Boolean);
+    const query = globalFilter.trim();
+    const pool = query
+      ? new Set(fuse.search(query).map((r) => r.item.id))
+      : null;
     return indicators.filter((i) => {
       if (subcatFilter !== "all" && i.subcategory !== subcatFilter) return false;
       if (yearFilter !== "all" && String(i.year) !== yearFilter) return false;
-      if (tokens.length === 0) return true;
-      const haystack = [i.name, i.race, i.source, i.subcategory ?? "", String(i.year ?? "")]
-        .join(" ").toLowerCase();
-      return tokens.every((t) => haystack.includes(t));
+      if (pool && !pool.has(i.id)) return false;
+      return true;
     });
-  }, [indicators, subcatFilter, yearFilter, globalFilter]);
+  }, [indicators, subcatFilter, yearFilter, globalFilter, fuse]);
 
   function toggleId(id: string) {
     setSelectedIds((prev) => {
