@@ -84,6 +84,8 @@ export default function ChartBuilder({ indicators }: Props) {
         <span className="text-xs text-slate-400">{remaining}/{MAX_REQUESTS} requests remaining this session</span>
       </div>
 
+      <p className="text-xs text-slate-400 mb-2">Charts are built from Richmond City data only — queries must reference indicators already in this dashboard.</p>
+
       <form onSubmit={handleSubmit} className="flex gap-2">
         <input
           value={query}
