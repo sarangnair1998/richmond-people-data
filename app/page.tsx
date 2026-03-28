@@ -7,27 +7,29 @@ import DataTable from "@/components/DataTable";
 import ExportCSV from "@/components/ExportCSV";
 import ChartBuilder from "@/components/ChartBuilder";
 import DisparityCallout from "@/components/DisparityCallout";
-import GrantPackButton from "@/components/GrantPackButton";
+import AboutPage from "@/components/AboutPage";
+import DataPacksPage from "@/components/DataPacksPage";
 import { getAllIndicators, type Indicator } from "@/lib/data";
 
-type Tab = "health" | "population" | "poverty" | "education";
+type DataTab = "health" | "population" | "poverty" | "education";
+type Page = DataTab | "data_packs" | "about";
 
-const TABS: { id: Tab; label: string }[] = [
+const DATA_TABS: { id: DataTab; label: string }[] = [
   { id: "health", label: "Health" },
   { id: "population", label: "Population" },
   { id: "poverty", label: "Poverty" },
   { id: "education", label: "Education" },
 ];
 
-const STAT_CARDS: Record<Tab, Array<{
+const STAT_CARDS: Record<DataTab, Array<{
   label: string; name: string; race: string; source: string;
   color: string; decimals: number; prefix?: string; unit?: string;
 }>> = {
   health: [
-    { label: "Preterm Birth Rate", name: "Preterm Birth Rate", race: "all", source: "CDC WONDER 2024", color: "border-red-600", decimals: 1, unit: "%" },
-    { label: "Infant Mortality Rate", name: "Infant Mortality Rate", race: "all", source: "VDH 2020", color: "border-red-500", decimals: 1, unit: "/1k" },
-    { label: "Uninsured Adults", name: "Uninsured Adults", race: "all", source: "Census 2023", color: "border-amber-500", decimals: 1, unit: "%" },
-    { label: "Depression", name: "Depression", race: "all", source: "CDC PLACES 2022", color: "border-orange-500", decimals: 1, unit: "%" },
+    { label: "Preterm Birth Rate", name: "Preterm Birth Rate", race: "all", source: "CDC WONDER 2024", color: "border-red-500", decimals: 1, unit: "%" },
+    { label: "Infant Mortality — Black", name: "Infant Mortality Rate", race: "black", source: "VDH 2020", color: "border-rose-500", decimals: 1, unit: "/1k" },
+    { label: "Late / No Prenatal Care", name: "Late or No Prenatal Care", race: "all", source: "CDC WONDER 2024", color: "border-amber-500", decimals: 1, unit: "%" },
+    { label: "Uninsured Adults", name: "Uninsured Adults", race: "all", source: "Census 2023", color: "border-orange-500", decimals: 1, unit: "%" },
   ],
   population: [
     { label: "Total Population", name: "Total Population", race: "all", source: "Census 2023", color: "border-blue-600", decimals: 0 },
@@ -49,7 +51,7 @@ const STAT_CARDS: Record<Tab, Array<{
   ],
 };
 
-const DEFAULT_CHART: Record<Tab, string> = {
+const DEFAULT_CHART: Record<DataTab, string> = {
   health: "Preterm Birth Rate",
   population: "Total Population",
   poverty: "Poverty Rate",
@@ -63,8 +65,12 @@ function humanizeSubcat(s: string): string {
     .replace("Hiv", "HIV");
 }
 
+function isDataTab(p: Page): p is DataTab {
+  return ["health", "population", "poverty", "education"].includes(p);
+}
+
 export default function Home() {
-  const [activeTab, setActiveTab] = useState<Tab>("health");
+  const [activePage, setActivePage] = useState<Page>("health");
   const [activeSubcat, setActiveSubcat] = useState<string>("all");
   const [indicators, setIndicators] = useState<Indicator[]>([]);
   const [loading, setLoading] = useState(true);
@@ -79,12 +85,16 @@ export default function Home() {
       .finally(() => setLoading(false));
   }, []);
 
-  // When tab changes, reset chart selection and subcategory
+  // When data tab changes, reset chart selection and subcategory
   useEffect(() => {
-    setSelectedIndicator(DEFAULT_CHART[activeTab]);
-    setSelectedRace("all");
-    setActiveSubcat("all");
-  }, [activeTab]);
+    if (isDataTab(activePage)) {
+      setSelectedIndicator(DEFAULT_CHART[activePage]);
+      setSelectedRace("all");
+      setActiveSubcat("all");
+    }
+  }, [activePage]);
+
+  const activeTab = isDataTab(activePage) ? activePage : "health";
 
   const tabIndicators = useMemo(
     () => indicators.filter((i) => i.category === activeTab),
@@ -103,17 +113,13 @@ export default function Home() {
     [tabIndicators, activeSubcat]
   );
 
-  // Unique indicator names for dropdown
   const chartableNames = useMemo(
     () => Array.from(new Set(
-      subcatIndicators
-        .filter((i) => i.value !== null)
-        .map((i) => i.name)
+      subcatIndicators.filter((i) => i.value !== null).map((i) => i.name)
     )).sort(),
     [subcatIndicators]
   );
 
-  // When subcategory changes, reset chart selection if current indicator isn't in the new set
   useEffect(() => {
     if (chartableNames.length > 0 && !chartableNames.includes(selectedIndicator)) {
       setSelectedIndicator(chartableNames[0]);
@@ -121,7 +127,6 @@ export default function Home() {
     }
   }, [chartableNames]);
 
-  // Unique races for selected indicator
   const availableRaces = useMemo(
     () => Array.from(new Set(
       subcatIndicators.filter((i) => i.name === selectedIndicator && i.value !== null).map((i) => i.race)
@@ -129,14 +134,12 @@ export default function Home() {
     [subcatIndicators, selectedIndicator]
   );
 
-  // If the selected race isn't valid for the current indicator, auto-select the first available
   useEffect(() => {
     if (availableRaces.length > 0 && !availableRaces.includes(selectedRace)) {
       setSelectedRace(availableRaces[0]);
     }
   }, [availableRaces]);
 
-  // Download only the checked rows from the table
   function downloadSelected() {
     const rows = indicators.filter((i) => selectedIds.includes(i.id));
     const headers = ["Indicator", "Race/Group", "Value", "Unit", "VA Average", "Source", "Year", "Definition"];
@@ -155,7 +158,6 @@ export default function Home() {
     URL.revokeObjectURL(url);
   }
 
-  // Stat card values from live data
   function getCardMeta(name: string, race: string) {
     const match = indicators.find((i) => i.name === name && i.race === race && i.value !== null);
     const year = match?.year ?? null;
@@ -169,19 +171,16 @@ export default function Home() {
 
   const SUBCAT_COLORS = ["border-blue-600", "border-emerald-500", "border-amber-500", "border-rose-500"];
 
-  // When a subcategory is active, derive 4 stat cards from it dynamically
   const subcatStatCards = useMemo(() => {
     if (activeSubcat === "all") return null;
     const seen = new Set<string>();
     const cards: Indicator[] = [];
-    // prefer race=all rows first
     for (const i of subcatIndicators) {
       if (i.race === "all" && i.value !== null && !seen.has(i.name)) {
         seen.add(i.name); cards.push(i);
         if (cards.length === 4) return cards;
       }
     }
-    // fill remaining slots with any race
     for (const i of subcatIndicators) {
       if (i.value !== null && !seen.has(i.name)) {
         seen.add(i.name); cards.push(i);
@@ -198,7 +197,9 @@ export default function Home() {
         <div className="max-w-6xl mx-auto flex items-center justify-between">
           <div>
             <h1 className="text-xl font-bold text-white tracking-tight">RVA People Data</h1>
-            <p className="text-xs text-blue-200 mt-0.5">Richmond City · Official Government Sources Only</p>
+            <p className="text-xs text-blue-200 mt-0.5">
+              Richmond maternal health indicators — cited, race-disaggregated, export-ready
+            </p>
           </div>
           <div className="flex gap-2">
             {["Census", "VDH", "VDOE", "CDC"].map((s) => (
@@ -213,12 +214,12 @@ export default function Home() {
       {/* Tab Navigation */}
       <nav style={{ backgroundColor: "#1e3a5f" }} className="border-t border-white/10">
         <div className="max-w-6xl mx-auto flex">
-          {TABS.map((tab) => (
+          {DATA_TABS.map((tab) => (
             <button
               key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
+              onClick={() => setActivePage(tab.id)}
               className={`px-5 py-3 text-sm font-semibold tracking-wide transition-colors border-b-2 ${
-                activeTab === tab.id
+                activePage === tab.id
                   ? "border-blue-400 text-white"
                   : "border-transparent text-blue-200 hover:text-white hover:border-blue-300"
               }`}
@@ -226,150 +227,182 @@ export default function Home() {
               {tab.label}
             </button>
           ))}
+          <div className="ml-auto flex">
+            <button
+              onClick={() => setActivePage("data_packs")}
+              className={`px-5 py-3 text-sm font-semibold tracking-wide transition-colors border-b-2 ${
+                activePage === "data_packs"
+                  ? "border-emerald-400 text-white"
+                  : "border-transparent text-emerald-300 hover:text-white hover:border-emerald-300"
+              }`}
+            >
+              Data Packs
+            </button>
+            <button
+              onClick={() => setActivePage("about")}
+              className={`px-5 py-3 text-sm font-semibold tracking-wide transition-colors border-b-2 ${
+                activePage === "about"
+                  ? "border-slate-300 text-white"
+                  : "border-transparent text-blue-200 hover:text-white hover:border-blue-300"
+              }`}
+            >
+              About
+            </button>
+          </div>
         </div>
       </nav>
 
-      {/* Sub-category Nav */}
-      {!loading && subcategories.length > 1 && (
-        <div className="bg-white border-b border-slate-200">
-          <div className="max-w-6xl mx-auto flex overflow-x-auto px-6">
-            <button
-              onClick={() => setActiveSubcat("all")}
-              className={`px-4 py-2.5 text-xs font-semibold whitespace-nowrap border-b-2 transition-colors ${
-                activeSubcat === "all"
-                  ? "border-blue-500 text-blue-700"
-                  : "border-transparent text-slate-500 hover:text-slate-800"
-              }`}
-            >
-              All
-            </button>
-            {subcategories.map((s) => (
-              <button
-                key={s}
-                onClick={() => setActiveSubcat(s)}
-                className={`px-4 py-2.5 text-xs font-semibold whitespace-nowrap border-b-2 transition-colors ${
-                  activeSubcat === s
-                    ? "border-blue-500 text-blue-700"
-                    : "border-transparent text-slate-500 hover:text-slate-800"
-                }`}
-              >
-                {humanizeSubcat(s)}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
+      {/* About page */}
+      {activePage === "about" && <AboutPage />}
 
-      <main className="max-w-6xl mx-auto px-6 py-8 space-y-8">
-        {loading ? (
-          <div className="flex items-center justify-center h-64 text-slate-400 text-sm">
-            Loading data…
-          </div>
-        ) : (
-          <>
-            {/* Stat Cards */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {subcatStatCards
-                ? subcatStatCards.map((card, idx) => {
-                    const yr = card.year ?? null;
-                    return (
-                      <StatCard
-                        key={card.id}
-                        label={card.name}
-                        value={card.value!}
-                        unit={card.unit === "%" ? "%" : ""}
-                        source={card.source}
-                        year={yr ?? ""}
-                        vintage={yr ? (yr <= 2023 ? "Final" : "Provisional") : undefined}
-                        color={SUBCAT_COLORS[idx % SUBCAT_COLORS.length]}
-                        decimals={card.value! % 1 === 0 ? 0 : 1}
-                        definition={card.definition ?? undefined}
-                      />
-                    );
-                  })
-                : STAT_CARDS[activeTab].map((card) => {
-                    const meta = getCardMeta(card.name, card.race);
-                    return (
-                      <StatCard
-                        key={card.name + card.race}
-                        label={card.label}
-                        value={meta.value}
-                        unit={card.unit ?? ""}
-                        prefix={card.prefix ?? ""}
-                        source={card.source}
-                        year={meta.year}
-                        vintage={meta.vintage}
-                        color={card.color}
-                        decimals={card.decimals}
-                        definition={meta.definition}
-                      />
-                    );
-                  })
-              }
-            </div>
+      {/* Data Packs page */}
+      {activePage === "data_packs" && <DataPacksPage indicators={indicators} />}
 
-            {/* Equity Snapshot */}
-            <DisparityCallout indicators={subcatIndicators} />
-
-            {/* Chart Controls + Chart */}
-            <div className="space-y-3">
-              <div className="flex flex-wrap gap-3 items-center">
-                <select
-                  value={selectedIndicator}
-                  onChange={(e) => { setSelectedIndicator(e.target.value); setSelectedRace("all"); }}
-                  className="text-sm border border-slate-200 bg-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+      {/* Data dashboard */}
+      {isDataTab(activePage) && (
+        <>
+          {/* Sub-category Nav */}
+          {!loading && subcategories.length > 1 && (
+            <div className="bg-white border-b border-slate-200">
+              <div className="max-w-6xl mx-auto flex overflow-x-auto px-6">
+                <button
+                  onClick={() => setActiveSubcat("all")}
+                  className={`px-4 py-2.5 text-xs font-semibold whitespace-nowrap border-b-2 transition-colors ${
+                    activeSubcat === "all"
+                      ? "border-blue-500 text-blue-700"
+                      : "border-transparent text-slate-500 hover:text-slate-800"
+                  }`}
                 >
-                  {chartableNames.map((n) => (
-                    <option key={n} value={n}>{n}</option>
-                  ))}
-                </select>
-                {availableRaces.length > 1 && (
-                  <select
-                    value={selectedRace}
-                    onChange={(e) => setSelectedRace(e.target.value)}
-                    className="text-sm border border-slate-200 bg-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  All
+                </button>
+                {subcategories.map((s) => (
+                  <button
+                    key={s}
+                    onClick={() => setActiveSubcat(s)}
+                    className={`px-4 py-2.5 text-xs font-semibold whitespace-nowrap border-b-2 transition-colors ${
+                      activeSubcat === s
+                        ? "border-blue-500 text-blue-700"
+                        : "border-transparent text-slate-500 hover:text-slate-800"
+                    }`}
                   >
-                    {availableRaces.map((r) => (
-                      <option key={r} value={r}>{r === "all" ? "All groups" : r}</option>
-                    ))}
-                  </select>
-                )}
+                    {humanizeSubcat(s)}
+                  </button>
+                ))}
               </div>
-              <IndicatorChart
-                indicators={subcatIndicators}
-                selectedName={selectedIndicator}
-                selectedRace={selectedRace}
-              />
             </div>
+          )}
 
-            {/* Data Table + Export */}
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <h2 className="text-sm font-semibold text-slate-700">All Indicators</h2>
-                <div className="flex items-center gap-2">
-                  {selectedIds.length > 0 && (
-                    <button
-                      onClick={downloadSelected}
-                      className="flex items-center gap-2 text-sm bg-blue-600 text-white rounded-lg px-4 py-2 hover:bg-blue-700 transition-colors font-medium"
+          <main className="max-w-6xl mx-auto px-6 py-8 space-y-8">
+            {loading ? (
+              <div className="flex items-center justify-center h-64 text-slate-400 text-sm">
+                Loading data…
+              </div>
+            ) : (
+              <>
+                {/* Stat Cards */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  {subcatStatCards
+                    ? subcatStatCards.map((card, idx) => {
+                        const yr = card.year ?? null;
+                        return (
+                          <StatCard
+                            key={card.id}
+                            label={card.name}
+                            value={card.value!}
+                            unit={card.unit === "%" ? "%" : ""}
+                            source={card.source}
+                            year={yr ?? ""}
+                            vintage={yr ? (yr <= 2023 ? "Final" : "Provisional") : undefined}
+                            color={SUBCAT_COLORS[idx % SUBCAT_COLORS.length]}
+                            decimals={card.value! % 1 === 0 ? 0 : 1}
+                            definition={card.definition ?? undefined}
+                          />
+                        );
+                      })
+                    : STAT_CARDS[activeTab].map((card) => {
+                        const meta = getCardMeta(card.name, card.race);
+                        return (
+                          <StatCard
+                            key={card.name + card.race}
+                            label={card.label}
+                            value={meta.value}
+                            unit={card.unit ?? ""}
+                            prefix={card.prefix ?? ""}
+                            source={card.source}
+                            year={meta.year}
+                            vintage={meta.vintage}
+                            color={card.color}
+                            decimals={card.decimals}
+                            definition={meta.definition}
+                          />
+                        );
+                      })
+                  }
+                </div>
+
+                {/* Equity Snapshot */}
+                <DisparityCallout indicators={subcatIndicators} />
+
+                {/* Chart Controls + Chart */}
+                <div className="space-y-3">
+                  <div className="flex flex-wrap gap-3 items-center">
+                    <select
+                      value={selectedIndicator}
+                      onChange={(e) => { setSelectedIndicator(e.target.value); setSelectedRace("all"); }}
+                      className="text-sm border border-slate-200 bg-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                     >
-                      ↓ Download Selected ({selectedIds.length})
-                    </button>
-                  )}
-                  <GrantPackButton indicators={indicators} />
-                  <ExportCSV
+                      {chartableNames.map((n) => (
+                        <option key={n} value={n}>{n}</option>
+                      ))}
+                    </select>
+                    {availableRaces.length > 1 && (
+                      <select
+                        value={selectedRace}
+                        onChange={(e) => setSelectedRace(e.target.value)}
+                        className="text-sm border border-slate-200 bg-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      >
+                        {availableRaces.map((r) => (
+                          <option key={r} value={r}>{r === "all" ? "All groups" : r}</option>
+                        ))}
+                      </select>
+                    )}
+                  </div>
+                  <IndicatorChart
                     indicators={subcatIndicators}
-                    filename={`richmond-${activeTab}${activeSubcat !== "all" ? `-${activeSubcat}` : ""}-data.csv`}
+                    selectedName={selectedIndicator}
+                    selectedRace={selectedRace}
                   />
                 </div>
-              </div>
-              <DataTable indicators={subcatIndicators} onSelectionChange={setSelectedIds} />
-            </div>
 
-            {/* Chart Builder */}
-            <ChartBuilder indicators={indicators} />
-          </>
-        )}
-      </main>
+                {/* Data Table + Export */}
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <h2 className="text-sm font-semibold text-slate-700">All Indicators</h2>
+                    <div className="flex items-center gap-2">
+                      {selectedIds.length > 0 && (
+                        <button
+                          onClick={downloadSelected}
+                          className="flex items-center gap-2 text-sm bg-blue-600 text-white rounded-lg px-4 py-2 hover:bg-blue-700 transition-colors font-medium"
+                        >
+                          ↓ Download Selected ({selectedIds.length})
+                        </button>
+                      )}
+                      <ExportCSV
+                        indicators={subcatIndicators}
+                        filename={`richmond-${activeTab}${activeSubcat !== "all" ? `-${activeSubcat}` : ""}-data.csv`}
+                      />
+                    </div>
+                  </div>
+                  <DataTable indicators={subcatIndicators} onSelectionChange={setSelectedIds} />
+                </div>
+
+                {/* Chart Builder */}
+                <ChartBuilder indicators={indicators} />
+              </>
+            )}
+          </main>
+        </>
+      )}
 
       {/* Footer */}
       <footer className="border-t border-slate-200 bg-white mt-12 px-6 py-6">
