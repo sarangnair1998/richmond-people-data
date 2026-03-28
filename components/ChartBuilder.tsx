@@ -42,7 +42,7 @@ export default function ChartBuilder({ indicators, lang }: Props) {
 
     const used = Number(sessionStorage.getItem(SESSION_KEY) ?? 0);
     if (used >= MAX_REQUESTS) {
-      setError("You've used all 5 chart requests for this session. Refresh the page to reset.");
+      setError(translations[lang].chart.sessionExpired);
       return;
     }
 

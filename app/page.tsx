@@ -60,11 +60,9 @@ const DEFAULT_CHART: Record<DataTab, string> = {
   education: "4-Year Graduation Rate",
 };
 
-function humanizeSubcat(s: string): string {
-  return s
-    .replace(/_/g, " ")
-    .replace(/\b\w/g, (c) => c.toUpperCase())
-    .replace("Hiv", "HIV");
+function humanizeSubcat(s: string, lang: Lang): string {
+  const map = translations[lang].subcategories as Record<string, string>;
+  return map[s] ?? s.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()).replace("Hiv", "HIV");
 }
 
 function isDataTab(p: Page): p is DataTab {
@@ -176,7 +174,7 @@ export default function Home() {
     return {
       value: match?.value ?? 0,
       year: year ?? "",
-      vintage: year ? (year <= 2023 ? "Final" : "Provisional") as "Final" | "Provisional" : undefined,
+      vintage: year ? (year <= 2023 ? t.vintage.Final : t.vintage.Provisional) : undefined,
       definition: match?.definition ?? undefined,
     };
   }
@@ -303,7 +301,7 @@ export default function Home() {
                         : "border-transparent text-slate-500 hover:text-slate-800"
                     }`}
                   >
-                    {humanizeSubcat(s)}
+                    {humanizeSubcat(s, lang)}
                   </button>
                 ))}
               </div>
@@ -331,7 +329,7 @@ export default function Home() {
                             unit={card.unit === "%" ? "%" : ""}
                             source={card.source}
                             year={yr ?? ""}
-                            vintage={yr ? (yr <= 2023 ? "Final" : "Provisional") : undefined}
+                            vintage={yr ? (yr <= 2023 ? t.vintage.Final : t.vintage.Provisional) : undefined}
                             color={SUBCAT_COLORS[idx % SUBCAT_COLORS.length]}
                             decimals={card.value! % 1 === 0 ? 0 : 1}
                             definition={def ?? undefined}
@@ -384,7 +382,7 @@ export default function Home() {
                         className="text-sm border border-slate-200 bg-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                       >
                         {availableRaces.map((r) => (
-                          <option key={r} value={r}>{r === "all" ? t.dashboard.allGroups : r}</option>
+                          <option key={r} value={r}>{t.race[r as keyof typeof t.race] ?? r}</option>
                         ))}
                       </select>
                     )}
@@ -393,6 +391,7 @@ export default function Home() {
                     indicators={subcatIndicators}
                     selectedName={selectedIndicator}
                     selectedRace={selectedRace}
+                    lang={lang}
                   />
                 </div>
 

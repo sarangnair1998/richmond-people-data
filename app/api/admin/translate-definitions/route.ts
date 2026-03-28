@@ -1,27 +1,25 @@
 import { createClient } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
-import Groq from "groq-sdk";
+import Anthropic from "@anthropic-ai/sdk";
 
 export const runtime = "nodejs";
 export const maxDuration = 300;
 
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD ?? "";
 
-async function translateOne(groq: Groq, text: string): Promise<string> {
-  const completion = await groq.chat.completions.create({
-    model: "llama-3.3-70b-versatile",
+async function translateOne(client: Anthropic, text: string): Promise<string> {
+  const message = await client.messages.create({
+    model: "claude-haiku-4-5-20251001",
+    max_tokens: 512,
     messages: [
       {
-        role: "system",
-        content:
-          "You are a professional medical and public health translator. Translate the following English text to Spanish. Preserve technical terms, proper nouns, and numbers exactly. Return only the translated text, no explanations.",
+        role: "user",
+        content: `Translate the following English public health text to Spanish. Preserve all technical terms, proper nouns, acronyms, and numbers exactly as they appear. Return only the translated text with no explanation or preamble.\n\n${text}`,
       },
-      { role: "user", content: text },
     ],
-    temperature: 0.1,
-    max_tokens: 512,
   });
-  return completion.choices[0]?.message?.content?.trim() ?? text;
+  const block = message.content[0];
+  return block.type === "text" ? block.text.trim() : text;
 }
 
 function sleep(ms: number) {
@@ -38,9 +36,8 @@ export async function POST(req: Request) {
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
   );
-  const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
+  const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
-  // Fetch rows missing Spanish definition
   const { data: rows, error } = await supabase
     .from("indicators")
     .select("id, definition")
@@ -50,7 +47,6 @@ export async function POST(req: Request) {
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   if (!rows?.length) return NextResponse.json({ translated: 0, message: "All definitions already translated." });
 
-  // Deduplicate
   const cache = new Map<string, string>();
   for (const row of rows) {
     if (row.definition && !cache.has(row.definition)) cache.set(row.definition, "");
@@ -59,16 +55,15 @@ export async function POST(req: Request) {
   let failed = 0;
   for (const [eng] of cache) {
     try {
-      const spanish = await translateOne(groq, eng);
+      const spanish = await translateOne(anthropic, eng);
       cache.set(eng, spanish);
     } catch {
       failed++;
       cache.set(eng, "");
     }
-    await sleep(1200);
+    await sleep(200);
   }
 
-  // Write back
   let updated = 0;
   for (const row of rows) {
     const spanish = cache.get(row.definition ?? "") ?? "";
