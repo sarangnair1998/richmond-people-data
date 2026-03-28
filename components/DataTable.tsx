@@ -4,7 +4,6 @@ import {
   useReactTable,
   getCoreRowModel,
   getSortedRowModel,
-  getFilteredRowModel,
   flexRender,
   createColumnHelper,
   type SortingState,
@@ -35,15 +34,17 @@ export default function DataTable({ indicators, onSelectionChange }: Props) {
     [indicators]
   );
 
-  const filtered = useMemo(
-    () =>
-      indicators.filter(
-        (i) =>
-          (subcatFilter === "all" || i.subcategory === subcatFilter) &&
-          (yearFilter === "all" || String(i.year) === yearFilter)
-      ),
-    [indicators, subcatFilter, yearFilter]
-  );
+  const filtered = useMemo(() => {
+    const tokens = globalFilter.toLowerCase().split(/\s+/).filter(Boolean);
+    return indicators.filter((i) => {
+      if (subcatFilter !== "all" && i.subcategory !== subcatFilter) return false;
+      if (yearFilter !== "all" && String(i.year) !== yearFilter) return false;
+      if (tokens.length === 0) return true;
+      const haystack = [i.name, i.race, i.source, i.subcategory ?? "", String(i.year ?? "")]
+        .join(" ").toLowerCase();
+      return tokens.every((t) => haystack.includes(t));
+    });
+  }, [indicators, subcatFilter, yearFilter, globalFilter]);
 
   function toggleId(id: string) {
     setSelectedIds((prev) => {
@@ -156,12 +157,10 @@ export default function DataTable({ indicators, onSelectionChange }: Props) {
   const table = useReactTable({
     data: filtered,
     columns,
-    state: { sorting, globalFilter },
+    state: { sorting },
     onSortingChange: setSorting,
-    onGlobalFilterChange: setGlobalFilter,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
   });
 
   return (
