@@ -163,6 +163,7 @@ export default function Home() {
       value: match?.value ?? 0,
       year: year ?? "",
       vintage: year ? (year <= 2023 ? "Final" : "Provisional") as "Final" | "Provisional" : undefined,
+      definition: match?.definition ?? undefined,
     };
   }
 
@@ -282,6 +283,7 @@ export default function Home() {
                         vintage={yr ? (yr <= 2023 ? "Final" : "Provisional") : undefined}
                         color={SUBCAT_COLORS[idx % SUBCAT_COLORS.length]}
                         decimals={card.value! % 1 === 0 ? 0 : 1}
+                        definition={card.definition ?? undefined}
                       />
                     );
                   })
@@ -299,6 +301,7 @@ export default function Home() {
                         vintage={meta.vintage}
                         color={card.color}
                         decimals={card.decimals}
+                        definition={meta.definition}
                       />
                     );
                   })
