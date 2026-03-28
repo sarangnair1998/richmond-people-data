@@ -3,13 +3,15 @@
 import {
   BarChart,
   Bar,
+  LineChart,
+  Line,
   XAxis,
   YAxis,
   CartesianGrid,
   Tooltip,
-  Legend,
   ResponsiveContainer,
   Cell,
+  Dot,
 } from "recharts";
 import type { Indicator } from "@/lib/data";
 
@@ -36,7 +38,7 @@ export default function IndicatorChart({ indicators, selectedName, selectedRace 
   const distinctYears = Array.from(new Set(filtered.map((i) => i.year)));
   const isTimeSeries = distinctYears.length > 1;
 
-  // --- Time series: multiple years → bar chart with year on x-axis ---
+  // --- Time series: multiple years → line chart with year on x-axis ---
   if (isTimeSeries) {
     const data = filtered.map((i) => ({ year: String(i.year), value: i.value }));
     return (
@@ -48,7 +50,7 @@ export default function IndicatorChart({ indicators, selectedName, selectedRace 
           </span>
         </div>
         <ResponsiveContainer width="100%" height={220}>
-          <BarChart data={data} margin={{ top: 4, right: 16, left: 0, bottom: 4 }} barSize={32}>
+          <LineChart data={data} margin={{ top: 4, right: 16, left: 0, bottom: 4 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
             <XAxis dataKey="year" tick={{ fontSize: 12 }} axisLine={false} tickLine={false} />
             <YAxis
@@ -61,8 +63,15 @@ export default function IndicatorChart({ indicators, selectedName, selectedRace 
               formatter={(v) => [`${Number(v).toFixed(1)}${unit}`, selectedName]}
               contentStyle={{ fontSize: 12, borderRadius: 8, border: "1px solid #e2e8f0" }}
             />
-            <Bar dataKey="value" fill="#2563eb" radius={[4, 4, 0, 0]} />
-          </BarChart>
+            <Line
+              type="monotone"
+              dataKey="value"
+              stroke="#2563eb"
+              strokeWidth={2.5}
+              dot={<Dot r={4} fill="#2563eb" stroke="#fff" strokeWidth={2} />}
+              activeDot={{ r: 6 }}
+            />
+          </LineChart>
         </ResponsiveContainer>
         {filtered[0].definition && (
           <p className="text-xs text-slate-400 mt-3 border-t border-slate-100 pt-3">
