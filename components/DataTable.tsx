@@ -17,7 +17,22 @@ const col = createColumnHelper<Indicator>();
 const columns = [
   col.accessor("name", {
     header: "Indicator",
-    cell: (i) => <span className="font-medium text-slate-800">{i.getValue()}</span>,
+    cell: (i) => {
+      const definition = i.row.original.definition;
+      return (
+        <span className="flex items-center gap-1.5">
+          <span className="font-medium text-slate-800">{i.getValue()}</span>
+          {definition && (
+            <span className="relative group">
+              <span className="text-slate-400 hover:text-blue-500 cursor-help text-xs leading-none">ⓘ</span>
+              <span className="pointer-events-none absolute left-0 top-5 z-10 w-64 rounded-lg bg-slate-900 text-white text-xs px-3 py-2 shadow-lg opacity-0 group-hover:opacity-100 transition-opacity">
+                {definition}
+              </span>
+            </span>
+          )}
+        </span>
+      );
+    },
   }),
   col.accessor("race", {
     header: "Race/Group",
