@@ -79,37 +79,32 @@ export default function DisparityCallout({ indicators }: Props) {
   if (rows.length === 0) return null;
 
   return (
-    <div className="rounded-xl border border-red-200 bg-red-50 p-5">
+    <div className="rounded-xl border border-slate-200 bg-slate-50 p-5">
       <div className="flex items-center gap-3 mb-4">
-        <div className="w-2 h-6 rounded-full bg-red-500" />
-        <span className="text-sm font-bold text-red-700 uppercase tracking-wide">Equity Snapshot</span>
-        <span className="text-xs text-red-500">Richmond City · by race/ethnicity</span>
+        <div className="w-2 h-6 rounded-full bg-blue-400" />
+        <span className="text-sm font-bold text-slate-600 uppercase tracking-wide">Equity Snapshot</span>
+        <span className="text-xs text-slate-400">Richmond City · by race/ethnicity</span>
       </div>
       <div className="space-y-4">
-        {rows.map(({ name, year, rows: raceRows, ratio, unit, source, higherIsBetter }) => {
-          const worstValue = higherIsBetter
-            ? Math.min(...raceRows.map((x) => x.value!))
-            : Math.max(...raceRows.map((x) => x.value!));
-          return (
-            <div key={name} className="flex flex-wrap items-center gap-4">
-              <div className="min-w-[200px] text-xs font-semibold text-slate-600">{name}</div>
-              <div className="flex items-center gap-4 flex-wrap flex-1">
-                {raceRows.map((r) => (
-                  <div key={r.race} className="text-center">
-                    <div className="text-xs text-slate-500 mb-0.5">{RACE_LABEL[r.race] ?? r.race}</div>
-                    <div className={`text-xl font-bold ${r.value === worstValue ? "text-red-600" : "text-slate-600"}`}>
-                      {r.value!.toFixed(1)}{shortUnit(unit)}
-                    </div>
+        {rows.map(({ name, year, rows: raceRows, ratio, unit, source }) => (
+          <div key={name} className="flex flex-wrap items-center gap-4">
+            <div className="min-w-[200px] text-xs font-semibold text-slate-600">{name}</div>
+            <div className="flex items-center gap-4 flex-wrap flex-1">
+              {raceRows.map((r) => (
+                <div key={r.race} className="text-center">
+                  <div className="text-xs text-slate-500 mb-0.5">{RACE_LABEL[r.race] ?? r.race}</div>
+                  <div className="text-xl font-bold text-slate-700">
+                    {r.value!.toFixed(1)}{shortUnit(unit)}
                   </div>
-                ))}
-                <div className="px-2.5 py-1 bg-red-100 border border-red-200 rounded-full text-xs font-bold text-red-700">
-                  {ratio.toFixed(1)}× gap
                 </div>
-                <div className="ml-auto text-xs text-slate-400">{source} {year}</div>
+              ))}
+              <div className="px-2.5 py-1 bg-blue-50 border border-blue-200 rounded-full text-xs font-semibold text-blue-600">
+                {ratio.toFixed(1)}× difference
               </div>
+              <div className="ml-auto text-xs text-slate-400">{source} {year}</div>
             </div>
-          );
-        })}
+          </div>
+        ))}
       </div>
     </div>
   );
