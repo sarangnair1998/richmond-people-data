@@ -7,6 +7,7 @@ import {
 } from "recharts";
 import type { Indicator } from "@/lib/data";
 import { buildIndicatorCatalog } from "@/lib/data";
+import translations, { type Lang } from "@/lib/translations";
 
 const SESSION_KEY = "rva_chart_count";
 const MAX_REQUESTS = 5;
@@ -22,9 +23,10 @@ type ChartSpec = {
   error?: string;
 };
 
-type Props = { indicators: Indicator[] };
+type Props = { indicators: Indicator[]; lang: Lang };
 
-export default function ChartBuilder({ indicators }: Props) {
+export default function ChartBuilder({ indicators, lang }: Props) {
+  const t = translations[lang].chart;
   const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<ChartSpec | null>(null);
@@ -80,17 +82,17 @@ export default function ChartBuilder({ indicators }: Props) {
   return (
     <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-5">
       <div className="flex items-center justify-between mb-3">
-        <h3 className="text-sm font-semibold text-slate-700">✨ Describe a chart you want to see</h3>
-        <span className="text-xs text-slate-400">{remaining}/{MAX_REQUESTS} requests remaining this session</span>
+        <h3 className="text-sm font-semibold text-slate-700">{t.title}</h3>
+        <span className="text-xs text-slate-400">{remaining}/{MAX_REQUESTS} {t.sessionLabel}</span>
       </div>
 
-      <p className="text-xs text-slate-400 mb-2">Charts are built from Richmond City data only — queries must reference indicators already in this dashboard.</p>
+      <p className="text-xs text-slate-400 mb-2">{t.hint}</p>
 
       <form onSubmit={handleSubmit} className="flex gap-2">
         <input
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder='e.g. "Show infant mortality by race" or "Compare poverty vs graduation rate"'
+          placeholder={t.placeholder}
           className="flex-1 text-sm border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
           disabled={loading || remaining === 0}
         />
@@ -99,7 +101,7 @@ export default function ChartBuilder({ indicators }: Props) {
           disabled={loading || remaining === 0 || !query.trim()}
           className="text-sm bg-blue-600 text-white rounded-lg px-4 py-2 hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors font-medium whitespace-nowrap"
         >
-          {loading ? "Building…" : "Build Chart"}
+          {loading ? t.building : t.build}
         </button>
       </form>
 

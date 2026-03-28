@@ -14,6 +14,7 @@ export type Indicator = {
   year: number | null;
   va_average: number | null;
   definition: string | null;
+  definition_es: string | null;
   notes: string | null;
 };
 

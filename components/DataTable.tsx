@@ -11,15 +11,18 @@ import {
 import { useState, useMemo } from "react";
 import Fuse from "fuse.js";
 import type { Indicator } from "@/lib/data";
+import translations, { type Lang } from "@/lib/translations";
 
 const col = createColumnHelper<Indicator>();
 
 type Props = {
   indicators: Indicator[];
+  lang: Lang;
   onSelectionChange?: (ids: string[]) => void;
 };
 
-export default function DataTable({ indicators, onSelectionChange }: Props) {
+export default function DataTable({ indicators, lang, onSelectionChange }: Props) {
+  const t = translations[lang].table;
   const [sorting, setSorting] = useState<SortingState>([]);
   const [globalFilter, setGlobalFilter] = useState("");
   const [subcatFilter, setSubcatFilter] = useState("all");
@@ -111,7 +114,7 @@ export default function DataTable({ indicators, onSelectionChange }: Props) {
       ),
     }),
     col.accessor("name", {
-      header: "Indicator",
+      header: t.colIndicator,
       cell: (i) => {
         const definition = i.row.original.definition;
         return (
@@ -130,11 +133,11 @@ export default function DataTable({ indicators, onSelectionChange }: Props) {
       },
     }),
     col.accessor("race", {
-      header: "Race/Group",
+      header: t.colRace,
       cell: (i) => <span className="capitalize">{i.getValue()}</span>,
     }),
     col.accessor("value", {
-      header: "Value",
+      header: t.colValue,
       cell: (i) => {
         const v = i.getValue();
         const unit = i.row.original.unit;
@@ -144,7 +147,7 @@ export default function DataTable({ indicators, onSelectionChange }: Props) {
       },
     }),
     col.accessor("va_average", {
-      header: "VA Avg",
+      header: t.colVA,
       cell: (i) => {
         const v = i.getValue();
         const unit = i.row.original.unit;
@@ -153,7 +156,7 @@ export default function DataTable({ indicators, onSelectionChange }: Props) {
       },
     }),
     col.accessor("source", {
-      header: "Source",
+      header: t.colSource,
       cell: (i) => (
         <a
           href={i.row.original.source_url ?? "#"}
@@ -166,10 +169,10 @@ export default function DataTable({ indicators, onSelectionChange }: Props) {
       ),
     }),
     col.accessor("year", {
-      header: "Year",
+      header: t.colYear,
       cell: (i) => <span className="text-slate-400 text-sm">{i.getValue() ?? "—"}</span>,
     }),
-  ], [selectedIds]);
+  ], [selectedIds, t]);
 
   const table = useReactTable({
     data: filtered,
@@ -187,7 +190,7 @@ export default function DataTable({ indicators, onSelectionChange }: Props) {
         <input
           value={globalFilter}
           onChange={(e) => setGlobalFilter(e.target.value)}
-          placeholder="Search indicators..."
+          placeholder={t.search}
           className="text-sm border border-slate-200 rounded-lg px-3 py-1.5 flex-1 min-w-48 focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
         <select
@@ -197,7 +200,7 @@ export default function DataTable({ indicators, onSelectionChange }: Props) {
         >
           {subcategories.map((s) => (
             <option key={s} value={s}>
-              {s === "all" ? "All subcategories" : s.replace(/_/g, " ")}
+              {s === "all" ? t.allSubcategories : s.replace(/_/g, " ")}
             </option>
           ))}
         </select>
@@ -208,14 +211,14 @@ export default function DataTable({ indicators, onSelectionChange }: Props) {
         >
           {years.map((y) => (
             <option key={y} value={y}>
-              {y === "all" ? "All years" : y}
+              {y === "all" ? t.allYears : y}
             </option>
           ))}
         </select>
         <span className="text-xs text-slate-400 ml-auto">
-          {table.getRowModel().rows.length} rows
+          {table.getRowModel().rows.length} {t.rows}
           {selectedIds.size > 0 && (
-            <span className="ml-2 text-blue-600 font-semibold">· {selectedIds.size} selected</span>
+            <span className="ml-2 text-blue-600 font-semibold">· {selectedIds.size} {t.selected}</span>
           )}
         </span>
       </div>

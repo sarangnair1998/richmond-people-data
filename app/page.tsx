@@ -10,6 +10,7 @@ import DisparityCallout from "@/components/DisparityCallout";
 import AboutPage from "@/components/AboutPage";
 import DataPacksPage from "@/components/DataPacksPage";
 import { getAllIndicators, type Indicator } from "@/lib/data";
+import translations, { type Lang } from "@/lib/translations";
 
 type DataTab = "health" | "population" | "poverty" | "education";
 type Page = DataTab | "data_packs" | "about";
@@ -22,32 +23,33 @@ const DATA_TABS: { id: DataTab; label: string }[] = [
 ];
 
 const STAT_CARDS: Record<DataTab, Array<{
-  label: string; name: string; race: string; source: string;
+  labelKey: keyof typeof translations.en.statLabels;
+  name: string; race: string; source: string;
   color: string; decimals: number; prefix?: string; unit?: string;
 }>> = {
   health: [
-    { label: "Preterm Birth Rate", name: "Preterm Birth Rate", race: "all", source: "CDC WONDER 2024", color: "border-red-500", decimals: 1, unit: "%" },
-    { label: "Infant Mortality — Black", name: "Infant Mortality Rate", race: "black", source: "VDH 2020", color: "border-rose-500", decimals: 1, unit: "/1k" },
-    { label: "Late / No Prenatal Care", name: "Late or No Prenatal Care", race: "all", source: "CDC WONDER 2024", color: "border-amber-500", decimals: 1, unit: "%" },
-    { label: "Uninsured Adults", name: "Uninsured Adults", race: "all", source: "Census 2023", color: "border-orange-500", decimals: 1, unit: "%" },
+    { labelKey: "pretermBirthRate", name: "Preterm Birth Rate", race: "all", source: "CDC WONDER 2024", color: "border-red-500", decimals: 1, unit: "%" },
+    { labelKey: "infantMortalityBlack", name: "Infant Mortality Rate", race: "black", source: "VDH 2020", color: "border-rose-500", decimals: 1, unit: "/1k" },
+    { labelKey: "latePrenatalCare", name: "Late or No Prenatal Care", race: "all", source: "CDC WONDER 2024", color: "border-amber-500", decimals: 1, unit: "%" },
+    { labelKey: "uninsuredAdults", name: "Uninsured Adults", race: "all", source: "Census 2023", color: "border-orange-500", decimals: 1, unit: "%" },
   ],
   population: [
-    { label: "Total Population", name: "Total Population", race: "all", source: "Census 2023", color: "border-blue-600", decimals: 0 },
-    { label: "Median Age", name: "Median Age", race: "all", source: "Census 2023", color: "border-cyan-500", decimals: 1, unit: " yrs" },
-    { label: "Children Under 5", name: "Population Under 5", race: "all", source: "Census 2023", color: "border-green-500", decimals: 0 },
-    { label: "Women 15–44", name: "Women of Childbearing Age (15–44)", race: "all", source: "Census 2023", color: "border-purple-500", decimals: 0 },
+    { labelKey: "totalPopulation", name: "Total Population", race: "all", source: "Census 2023", color: "border-blue-600", decimals: 0 },
+    { labelKey: "medianAge", name: "Median Age", race: "all", source: "Census 2023", color: "border-cyan-500", decimals: 1, unit: " yrs" },
+    { labelKey: "childrenUnder5", name: "Population Under 5", race: "all", source: "Census 2023", color: "border-green-500", decimals: 0 },
+    { labelKey: "women1544", name: "Women of Childbearing Age (15–44)", race: "all", source: "Census 2023", color: "border-purple-500", decimals: 0 },
   ],
   poverty: [
-    { label: "Poverty Rate", name: "Poverty Rate", race: "all", source: "Census 2023", color: "border-amber-500", decimals: 1, unit: "%" },
-    { label: "People Below Poverty", name: "People Below Poverty Line", race: "all", source: "Census 2023", color: "border-red-500", decimals: 0 },
-    { label: "Child Poverty Rate", name: "Child Poverty Rate (Under 18)", race: "all", source: "Census 2023", color: "border-orange-500", decimals: 1, unit: "%" },
-    { label: "Cost Burdened Renters", name: "Renters — Cost Burdened (30%+ income on rent)", race: "all", source: "Census 2023", color: "border-yellow-500", decimals: 1, unit: "%" },
+    { labelKey: "povertyRate", name: "Poverty Rate", race: "all", source: "Census 2023", color: "border-amber-500", decimals: 1, unit: "%" },
+    { labelKey: "peopleBelowPoverty", name: "People Below Poverty Line", race: "all", source: "Census 2023", color: "border-red-500", decimals: 0 },
+    { labelKey: "childPovertyRate", name: "Child Poverty Rate (Under 18)", race: "all", source: "Census 2023", color: "border-orange-500", decimals: 1, unit: "%" },
+    { labelKey: "costBurdenedRenters", name: "Renters — Cost Burdened (30%+ income on rent)", race: "all", source: "Census 2023", color: "border-yellow-500", decimals: 1, unit: "%" },
   ],
   education: [
-    { label: "Student Enrollment", name: "Total Student Enrollment", race: "all", source: "VDOE 2025", color: "border-green-600", decimals: 0 },
-    { label: "Graduation Rate", name: "4-Year Graduation Rate", race: "all", source: "VDOE 2025", color: "border-blue-600", decimals: 1, unit: "%" },
-    { label: "SOL Reading Pass Rate", name: "SOL Pass Rate — Reading", race: "all", source: "VDOE 2025", color: "border-cyan-500", decimals: 0, unit: "%" },
-    { label: "Chronic Absenteeism", name: "Chronic Absenteeism Rate", race: "all", source: "VDOE 2025", color: "border-amber-500", decimals: 1, unit: "%" },
+    { labelKey: "studentEnrollment", name: "Total Student Enrollment", race: "all", source: "VDOE 2025", color: "border-green-600", decimals: 0 },
+    { labelKey: "graduationRate", name: "4-Year Graduation Rate", race: "all", source: "VDOE 2025", color: "border-blue-600", decimals: 1, unit: "%" },
+    { labelKey: "solReadingPassRate", name: "SOL Pass Rate — Reading", race: "all", source: "VDOE 2025", color: "border-cyan-500", decimals: 0, unit: "%" },
+    { labelKey: "chronicAbsenteeism", name: "Chronic Absenteeism Rate", race: "all", source: "VDOE 2025", color: "border-amber-500", decimals: 1, unit: "%" },
   ],
 };
 
@@ -70,6 +72,7 @@ function isDataTab(p: Page): p is DataTab {
 }
 
 export default function Home() {
+  const [lang, setLang] = useState<Lang>("en");
   const [activePage, setActivePage] = useState<Page>("health");
   const [activeSubcat, setActiveSubcat] = useState<string>("all");
   const [indicators, setIndicators] = useState<Indicator[]>([]);
@@ -77,6 +80,7 @@ export default function Home() {
   const [selectedIndicator, setSelectedIndicator] = useState(DEFAULT_CHART["health"]);
   const [selectedRace, setSelectedRace] = useState("all");
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const t = translations[lang];
 
   useEffect(() => {
     getAllIndicators()
@@ -111,6 +115,14 @@ export default function Home() {
       ? tabIndicators
       : tabIndicators.filter((i) => (i.subcategory ?? "other") === activeSubcat),
     [tabIndicators, activeSubcat]
+  );
+
+  // Swap definition → definition_es when Spanish is active
+  const displayIndicators = useMemo(
+    () => lang === "es"
+      ? subcatIndicators.map((i) => ({ ...i, definition: i.definition_es ?? i.definition }))
+      : subcatIndicators,
+    [subcatIndicators, lang]
   );
 
   const chartableNames = useMemo(
@@ -197,16 +209,22 @@ export default function Home() {
         <div className="max-w-6xl mx-auto flex items-center justify-between">
           <div>
             <h1 className="text-xl font-bold text-white tracking-tight">RVA People Data</h1>
-            <p className="text-xs text-blue-200 mt-0.5">
-              Richmond maternal health indicators — cited, race-disaggregated, export-ready
-            </p>
+            <p className="text-xs text-blue-200 mt-0.5">{t.header.subtitle}</p>
           </div>
-          <div className="flex gap-2">
-            {["Census", "VDH", "VDOE", "CDC"].map((s) => (
-              <span key={s} className="text-xs bg-white/10 text-blue-100 rounded-full px-2 py-0.5 border border-white/20">
-                {s}
-              </span>
-            ))}
+          <div className="flex items-center gap-3">
+            <div className="flex gap-2">
+              {["Census", "VDH", "VDOE", "CDC"].map((s) => (
+                <span key={s} className="text-xs bg-white/10 text-blue-100 rounded-full px-2 py-0.5 border border-white/20">
+                  {s}
+                </span>
+              ))}
+            </div>
+            <button
+              onClick={() => setLang(lang === "en" ? "es" : "en")}
+              className="text-xs font-semibold bg-white/10 hover:bg-white/20 text-white border border-white/20 rounded-full px-3 py-1 transition-colors"
+            >
+              {lang === "en" ? "ES" : "EN"}
+            </button>
           </div>
         </div>
       </header>
@@ -224,7 +242,7 @@ export default function Home() {
                   : "border-transparent text-blue-200 hover:text-white hover:border-blue-300"
               }`}
             >
-              {tab.label}
+              {t.nav[tab.id]}
             </button>
           ))}
           <div className="ml-auto flex">
@@ -236,7 +254,7 @@ export default function Home() {
                   : "border-transparent text-emerald-300 hover:text-white hover:border-emerald-300"
               }`}
             >
-              Data Packs
+              {t.nav.dataPacks}
             </button>
             <button
               onClick={() => setActivePage("about")}
@@ -246,17 +264,17 @@ export default function Home() {
                   : "border-transparent text-blue-200 hover:text-white hover:border-blue-300"
               }`}
             >
-              About
+              {t.nav.about}
             </button>
           </div>
         </div>
       </nav>
 
       {/* About page */}
-      {activePage === "about" && <AboutPage />}
+      {activePage === "about" && <AboutPage lang={lang} />}
 
       {/* Data Packs page */}
-      {activePage === "data_packs" && <DataPacksPage indicators={indicators} />}
+      {activePage === "data_packs" && <DataPacksPage indicators={indicators} lang={lang} />}
 
       {/* Data dashboard */}
       {isDataTab(activePage) && (
@@ -273,7 +291,7 @@ export default function Home() {
                       : "border-transparent text-slate-500 hover:text-slate-800"
                   }`}
                 >
-                  All
+                  {t.dashboard.all}
                 </button>
                 {subcategories.map((s) => (
                   <button
@@ -295,7 +313,7 @@ export default function Home() {
           <main className="max-w-6xl mx-auto px-6 py-8 space-y-8">
             {loading ? (
               <div className="flex items-center justify-center h-64 text-slate-400 text-sm">
-                Loading data…
+                {t.dashboard.loading}
               </div>
             ) : (
               <>
@@ -304,6 +322,7 @@ export default function Home() {
                   {subcatStatCards
                     ? subcatStatCards.map((card, idx) => {
                         const yr = card.year ?? null;
+                        const def = lang === "es" ? (card.definition_es ?? card.definition) : card.definition;
                         return (
                           <StatCard
                             key={card.id}
@@ -315,16 +334,19 @@ export default function Home() {
                             vintage={yr ? (yr <= 2023 ? "Final" : "Provisional") : undefined}
                             color={SUBCAT_COLORS[idx % SUBCAT_COLORS.length]}
                             decimals={card.value! % 1 === 0 ? 0 : 1}
-                            definition={card.definition ?? undefined}
+                            definition={def ?? undefined}
                           />
                         );
                       })
                     : STAT_CARDS[activeTab].map((card) => {
                         const meta = getCardMeta(card.name, card.race);
+                        const def = lang === "es"
+                          ? (indicators.find((i) => i.name === card.name && i.race === card.race)?.definition_es ?? meta.definition)
+                          : meta.definition;
                         return (
                           <StatCard
                             key={card.name + card.race}
-                            label={card.label}
+                            label={t.statLabels[card.labelKey]}
                             value={meta.value}
                             unit={card.unit ?? ""}
                             prefix={card.prefix ?? ""}
@@ -333,7 +355,7 @@ export default function Home() {
                             vintage={meta.vintage}
                             color={card.color}
                             decimals={card.decimals}
-                            definition={meta.definition}
+                            definition={def}
                           />
                         );
                       })
@@ -341,7 +363,7 @@ export default function Home() {
                 </div>
 
                 {/* Equity Snapshot */}
-                <DisparityCallout indicators={subcatIndicators} />
+                <DisparityCallout indicators={subcatIndicators} lang={lang} />
 
                 {/* Chart Controls + Chart */}
                 <div className="space-y-3">
@@ -362,7 +384,7 @@ export default function Home() {
                         className="text-sm border border-slate-200 bg-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                       >
                         {availableRaces.map((r) => (
-                          <option key={r} value={r}>{r === "all" ? "All groups" : r}</option>
+                          <option key={r} value={r}>{r === "all" ? t.dashboard.allGroups : r}</option>
                         ))}
                       </select>
                     )}
@@ -377,27 +399,28 @@ export default function Home() {
                 {/* Data Table + Export */}
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
-                    <h2 className="text-sm font-semibold text-slate-700">All Indicators</h2>
+                    <h2 className="text-sm font-semibold text-slate-700">{t.dashboard.allIndicators}</h2>
                     <div className="flex items-center gap-2">
                       {selectedIds.length > 0 && (
                         <button
                           onClick={downloadSelected}
                           className="flex items-center gap-2 text-sm bg-blue-600 text-white rounded-lg px-4 py-2 hover:bg-blue-700 transition-colors font-medium"
                         >
-                          ↓ Download Selected ({selectedIds.length})
+                          {t.dashboard.downloadSelected} ({selectedIds.length})
                         </button>
                       )}
                       <ExportCSV
                         indicators={subcatIndicators}
                         filename={`richmond-${activeTab}${activeSubcat !== "all" ? `-${activeSubcat}` : ""}-data.csv`}
+                        lang={lang}
                       />
                     </div>
                   </div>
-                  <DataTable indicators={subcatIndicators} onSelectionChange={setSelectedIds} />
+                  <DataTable indicators={displayIndicators} lang={lang} onSelectionChange={setSelectedIds} />
                 </div>
 
                 {/* Chart Builder */}
-                <ChartBuilder indicators={indicators} />
+                <ChartBuilder indicators={indicators} lang={lang} />
               </>
             )}
           </main>
@@ -407,11 +430,8 @@ export default function Home() {
       {/* Footer */}
       <footer className="border-t border-slate-200 bg-white mt-12 px-6 py-6">
         <div className="max-w-6xl mx-auto text-xs text-slate-400 flex flex-wrap gap-4 justify-between">
-          <span>
-            Data sourced from U.S. Census Bureau (ACS 5-Year 2023), Virginia Department of Health (2020),
-            Virginia Department of Education (2024–2025), and CDC PLACES (2022).
-          </span>
-          <span>Not an official City of Richmond publication · Last refresh: March 28, 2026</span>
+          <span>{t.footer.sources}</span>
+          <span>{t.footer.disclaimer}</span>
         </div>
       </footer>
     </div>

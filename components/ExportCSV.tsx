@@ -2,9 +2,12 @@
 
 import type { Indicator } from "@/lib/data";
 
-type Props = { indicators: Indicator[]; filename?: string };
+import translations, { type Lang } from "@/lib/translations";
 
-export default function ExportCSV({ indicators, filename = "richmond-data.csv" }: Props) {
+type Props = { indicators: Indicator[]; filename?: string; lang?: Lang };
+
+export default function ExportCSV({ indicators, filename = "richmond-data.csv", lang = "en" }: Props) {
+  const label = translations[lang].exportCsv;
   function download() {
     const headers = ["Indicator", "Race/Group", "Value", "Unit", "VA Average", "Source", "Year", "Definition"];
     const rows = indicators.map((i) => [
@@ -33,7 +36,7 @@ export default function ExportCSV({ indicators, filename = "richmond-data.csv" }
       onClick={download}
       className="flex items-center gap-2 text-sm bg-blue-600 text-white rounded-lg px-4 py-2 hover:bg-blue-700 transition-colors font-medium"
     >
-      ↓ Download CSV
+      {label}
     </button>
   );
 }
