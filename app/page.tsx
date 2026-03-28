@@ -56,8 +56,16 @@ const DEFAULT_CHART: Record<Tab, string> = {
   education: "4-Year Graduation Rate",
 };
 
+function humanizeSubcat(s: string): string {
+  return s
+    .replace(/_/g, " ")
+    .replace(/\b\w/g, (c) => c.toUpperCase())
+    .replace("Hiv", "HIV");
+}
+
 export default function Home() {
   const [activeTab, setActiveTab] = useState<Tab>("health");
+  const [activeSubcat, setActiveSubcat] = useState<string>("all");
   const [indicators, setIndicators] = useState<Indicator[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedIndicator, setSelectedIndicator] = useState(DEFAULT_CHART["health"]);
@@ -71,10 +79,11 @@ export default function Home() {
       .finally(() => setLoading(false));
   }, []);
 
-  // When tab changes, reset chart selection
+  // When tab changes, reset chart selection and subcategory
   useEffect(() => {
     setSelectedIndicator(DEFAULT_CHART[activeTab]);
     setSelectedRace("all");
+    setActiveSubcat("all");
   }, [activeTab]);
 
   const tabIndicators = useMemo(
@@ -82,22 +91,34 @@ export default function Home() {
     [indicators, activeTab]
   );
 
-  // Unique indicator names for dropdown (race=all only, with va_average)
+  const subcategories = useMemo(
+    () => Array.from(new Set(tabIndicators.map((i) => i.subcategory ?? "other"))).sort(),
+    [tabIndicators]
+  );
+
+  const subcatIndicators = useMemo(
+    () => activeSubcat === "all"
+      ? tabIndicators
+      : tabIndicators.filter((i) => (i.subcategory ?? "other") === activeSubcat),
+    [tabIndicators, activeSubcat]
+  );
+
+  // Unique indicator names for dropdown
   const chartableNames = useMemo(
     () => Array.from(new Set(
-      tabIndicators
+      subcatIndicators
         .filter((i) => i.value !== null)
         .map((i) => i.name)
     )).sort(),
-    [tabIndicators]
+    [subcatIndicators]
   );
 
   // Unique races for selected indicator
   const availableRaces = useMemo(
     () => Array.from(new Set(
-      tabIndicators.filter((i) => i.name === selectedIndicator && i.value !== null).map((i) => i.race)
+      subcatIndicators.filter((i) => i.name === selectedIndicator && i.value !== null).map((i) => i.race)
     )).sort(),
-    [tabIndicators, selectedIndicator]
+    [subcatIndicators, selectedIndicator]
   );
 
   // Download only the checked rows from the table
@@ -163,6 +184,37 @@ export default function Home() {
         </div>
       </nav>
 
+      {/* Sub-category Nav */}
+      {!loading && subcategories.length > 1 && (
+        <div className="bg-white border-b border-slate-200">
+          <div className="max-w-6xl mx-auto flex overflow-x-auto px-6">
+            <button
+              onClick={() => setActiveSubcat("all")}
+              className={`px-4 py-2.5 text-xs font-semibold whitespace-nowrap border-b-2 transition-colors ${
+                activeSubcat === "all"
+                  ? "border-blue-500 text-blue-700"
+                  : "border-transparent text-slate-500 hover:text-slate-800"
+              }`}
+            >
+              All
+            </button>
+            {subcategories.map((s) => (
+              <button
+                key={s}
+                onClick={() => setActiveSubcat(s)}
+                className={`px-4 py-2.5 text-xs font-semibold whitespace-nowrap border-b-2 transition-colors ${
+                  activeSubcat === s
+                    ? "border-blue-500 text-blue-700"
+                    : "border-transparent text-slate-500 hover:text-slate-800"
+                }`}
+              >
+                {humanizeSubcat(s)}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
       <main className="max-w-6xl mx-auto px-6 py-8 space-y-8">
         {loading ? (
           <div className="flex items-center justify-center h-64 text-slate-400 text-sm">
@@ -188,7 +240,7 @@ export default function Home() {
             </div>
 
             {/* Racial Disparity Callout */}
-            <DisparityCallout indicators={tabIndicators} />
+            <DisparityCallout indicators={subcatIndicators} />
 
             {/* Chart Controls + Chart */}
             <div className="space-y-3">
@@ -215,7 +267,7 @@ export default function Home() {
                 )}
               </div>
               <IndicatorChart
-                indicators={tabIndicators}
+                indicators={subcatIndicators}
                 selectedName={selectedIndicator}
                 selectedRace={selectedRace}
               />
@@ -236,12 +288,12 @@ export default function Home() {
                   )}
                   <GrantPackButton indicators={indicators} />
                   <ExportCSV
-                    indicators={tabIndicators}
-                    filename={`richmond-${activeTab}-data.csv`}
+                    indicators={subcatIndicators}
+                    filename={`richmond-${activeTab}${activeSubcat !== "all" ? `-${activeSubcat}` : ""}-data.csv`}
                   />
                 </div>
               </div>
-              <DataTable indicators={tabIndicators} onSelectionChange={setSelectedIds} />
+              <DataTable indicators={subcatIndicators} onSelectionChange={setSelectedIds} />
             </div>
 
             {/* Chart Builder */}
