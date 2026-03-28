@@ -54,10 +54,12 @@ export default function IndicatorChart({ indicators, selectedName, selectedRace 
             <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
             <XAxis dataKey="year" tick={{ fontSize: 12 }} axisLine={false} tickLine={false} />
             <YAxis
-              tick={{ fontSize: 12 }}
+              tick={{ fontSize: 11 }}
               axisLine={false}
               tickLine={false}
+              tickCount={5}
               tickFormatter={(v) => `${v}${unit}`}
+              width={48}
             />
             <Tooltip
               formatter={(v) => [`${Number(v).toFixed(1)}${unit}`, selectedName]}
@@ -104,10 +106,12 @@ export default function IndicatorChart({ indicators, selectedName, selectedRace 
           <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
           <XAxis dataKey="name" tick={{ fontSize: 13 }} axisLine={false} tickLine={false} />
           <YAxis
-            tick={{ fontSize: 12 }}
+            tick={{ fontSize: 11 }}
             axisLine={false}
             tickLine={false}
+            tickCount={5}
             tickFormatter={(v) => `${v}${unit}`}
+            width={48}
           />
           <Tooltip
             formatter={(v) => [`${Number(v).toFixed(1)}${unit}`, selectedName]}
